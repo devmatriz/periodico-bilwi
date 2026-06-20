@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "locales",
+    "active": true,
+    "label": "Locales",
+    "badge": "Barrio",
+    "title": "La noticia que empieza en la calle",
+    "description": "Servicios, movilidad y vida diaria de Bilwi con una lectura clara.",
+    "chips": [
+      "Barrios",
+      "Servicios",
+      "Movilidad"
+    ],
+    "image": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
+    "background": "linear-gradient(135deg, #0d6efd 0%, #0c2f67 55%, #081b39 100%)"
+  },
+  {
+    "slug": "cultura",
+    "active": true,
+    "label": "Cultura",
+    "badge": "Raiz",
+    "title": "Memoria viva, arte y tradicion",
+    "description": "Eventos, musica y expresiones culturales con identidad caribena.",
+    "chips": [
+      "Arte",
+      "Tradicion",
+      "Eventos"
+    ],
+    "image": "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?auto=format&fit=crop&w=1200&q=80",
+    "background": "linear-gradient(135deg, #d28a00 0%, #8c4d00 58%, #362100 100%)"
+  },
+  {
+    "slug": "deportes",
+    "active": true,
+    "label": "Deportes",
+    "badge": "Marcador",
+    "title": "Resultados, torneos y protagonistas",
+    "description": "La cobertura deportiva local con ritmo, analisis y aficion.",
+    "chips": [
+      "Futbol",
+      "Aficion",
+      "Regional"
+    ],
+    "image": "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=1200&q=80",
+    "background": "linear-gradient(135deg, #101826 0%, #132f58 58%, #07162f 100%)"
+  },
+  {
+    "slug": "economia",
+    "active": true,
+    "label": "Economia",
+    "badge": "Mercado",
+    "title": "Produccion, empleo y movimiento regional",
+    "description": "La actividad economica contada con contexto y claridad editorial.",
+    "chips": [
+      "Pesca",
+      "Comercio",
+      "Regional"
+    ],
+    "image": "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?auto=format&fit=crop&w=1200&q=80",
+    "background": "linear-gradient(135deg, #2f2107 0%, #8c4d00 58%, #1d1404 100%)"
+  }
+]

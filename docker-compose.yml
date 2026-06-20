@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: periodico-bilwi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: periodico
+      POSTGRES_PASSWORD: periodico
+      POSTGRES_DB: periodico_bilwi
+    ports:
+      - "5432:5432"
+    volumes:
+      - periodico_bilwi_pgdata:/var/lib/postgresql/data
+
+volumes:
+  periodico_bilwi_pgdata:
