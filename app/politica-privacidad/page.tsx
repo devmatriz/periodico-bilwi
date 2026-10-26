@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { SimplePage } from "@/components/simple-page";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
 
-export const metadata: Metadata = { title: "Política de privacidad" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.simple.privacyTitle, alternates: localizedAlternates(locale, "/politica-privacidad") };
+}
 
-export default function PoliticaPrivacidadPage() {
-  return <SimplePage title="Política de privacidad" lede="Texto legal base para la operación del sitio." />;
+export default async function PoliticaPrivacidadPage() {
+  const { t } = await getI18n();
+  return <SimplePage title={t.simple.privacyTitle} lede={t.simple.privacyLede} />;
 }

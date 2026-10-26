@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { SimplePage } from "@/components/simple-page";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
 
-export const metadata: Metadata = { title: "Términos de servicio" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.simple.termsTitle, alternates: localizedAlternates(locale, "/terminos") };
+}
 
-export default function TerminosPage() {
-  return (
-    <SimplePage
-      title="Términos de servicio"
-      lede="Condiciones básicas de uso del sitio y del contenido editorial."
-    />
-  );
+export default async function TerminosPage() {
+  const { t } = await getI18n();
+  return <SimplePage title={t.simple.termsTitle} lede={t.simple.termsLede} />;
 }

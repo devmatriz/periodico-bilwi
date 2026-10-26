@@ -7,6 +7,7 @@ import { StatusPill, statusLabels } from "@/components/admin-status";
 import { IconEye, IconPencil, IconSearch, IconTrash } from "@/components/icons";
 import { SafeImage } from "@/components/story-image";
 import { displayCategory } from "@/lib/sections";
+import { localeNamesInSpanish, localeShort, translationLocales } from "@/lib/i18n";
 import type { NewsItem, NewsStatus } from "@/lib/content-store";
 
 type Filter = "all" | NewsStatus | "featured";
@@ -152,6 +153,13 @@ export function AdminNewsTable({ items, initialFilter }: Props) {
                         <span className="table-sub">
                           {displayCategory(post.category)} · {post.author}
                           {post.featured ? <span className="flag">En portada</span> : null}
+                          {translationLocales
+                            .filter((locale) => post.translations?.[locale])
+                            .map((locale) => (
+                              <span key={locale} className="flag flag--lang" title={`Traducida al ${localeNamesInSpanish[locale]}`}>
+                                {localeShort[locale]}
+                              </span>
+                            ))}
                         </span>
                         <span className="table-status-inline">
                           <StatusPill status={post.status} />

@@ -14,7 +14,11 @@ function applyTheme(theme: Theme) {
   }
 }
 
-export function ThemeToggle() {
+type ThemeLabels = { toggle: string; toDark: string; toLight: string };
+
+const defaultLabels: ThemeLabels = { toggle: "Cambiar tema", toDark: "Activar modo oscuro", toLight: "Activar modo claro" };
+
+export function ThemeToggle({ labels = defaultLabels }: { labels?: ThemeLabels }) {
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
@@ -44,7 +48,7 @@ export function ThemeToggle() {
   }
 
   const isDark = theme === "dark";
-  const label = theme === null ? "Cambiar tema" : isDark ? "Activar modo claro" : "Activar modo oscuro";
+  const label = theme === null ? labels.toggle : isDark ? labels.toLight : labels.toDark;
 
   return (
     <button className="theme-toggle" type="button" onClick={toggle} aria-label={label} title={label}>

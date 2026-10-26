@@ -8,6 +8,7 @@ import { parseVideoUrl } from "@/lib/video";
 type Props = {
   url: string;
   caption: string;
+  labels: { play: string; videoOf: string; viewOn: string; viewVideo: string };
 };
 
 function PlayIcon() {
@@ -22,7 +23,7 @@ function PlayIcon() {
  * Video de YouTube o Facebook dentro de la noticia. Hasta que el lector toca «reproducir»
  * solo se muestra la portada: no se descarga el reproductor de la red ni se cargan sus cookies.
  */
-export function VideoEmbed({ url, caption }: Props) {
+export function VideoEmbed({ url, caption, labels }: Props) {
   const [playing, setPlaying] = useState(false);
   const source = parseVideoUrl(url);
 
@@ -30,13 +31,13 @@ export function VideoEmbed({ url, caption }: Props) {
     return (
       <p className="article-video-fallback">
         <a href={url} target="_blank" rel="noopener noreferrer">
-          Ver el video {caption ? `«${caption}»` : ""} <IconExternal size={14} />
+          {labels.viewVideo} {caption ? `«${caption}»` : ""} <IconExternal size={14} />
         </a>
       </p>
     );
   }
 
-  const title = caption ? `${caption} (video de ${source.platform})` : `Video de ${source.platform}`;
+  const title = caption ? `${caption} (${labels.videoOf} ${source.platform})` : `${labels.videoOf} ${source.platform}`;
 
   return (
     <figure className={`article-video${source.vertical ? " article-video--vertical" : ""}`}>
@@ -50,12 +51,12 @@ export function VideoEmbed({ url, caption }: Props) {
             referrerPolicy="strict-origin-when-cross-origin"
           />
         ) : (
-          <button className="article-video-facade" type="button" onClick={() => setPlaying(true)} aria-label={`Reproducir: ${title}`}>
+          <button className="article-video-facade" type="button" onClick={() => setPlaying(true)} aria-label={`${labels.play}: ${title}`}>
             {source.thumbnail ? (
               <SafeImage src={source.thumbnail} label={source.platform} sizes="(min-width: 860px) 760px, 100vw" />
             ) : (
               <span className="article-video-placeholder" aria-hidden="true">
-                Video de {source.platform}
+                {labels.videoOf} {source.platform}
               </span>
             )}
             <span className="article-video-play" aria-hidden="true">
@@ -70,7 +71,7 @@ export function VideoEmbed({ url, caption }: Props) {
       <figcaption>
         {caption ? <span className="article-video-caption">{caption}</span> : null}
         <a className="article-video-link" href={source.url} target="_blank" rel="noopener noreferrer">
-          Ver en {source.platform} <IconExternal size={14} />
+          {labels.viewOn} {source.platform} <IconExternal size={14} />
         </a>
       </figcaption>
     </figure>

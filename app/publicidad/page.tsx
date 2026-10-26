@@ -1,15 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SimplePage } from "@/components/simple-page";
+import { localePath } from "@/lib/i18n";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
 
-export const metadata: Metadata = { title: "Publicidad" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.simple.adsMetaTitle, alternates: localizedAlternates(locale, "/publicidad") };
+}
 
-export default function PublicidadPage() {
+export default async function PublicidadPage() {
+  const { locale, t } = await getI18n();
   return (
-    <SimplePage title="Espacios publicitarios" lede="Pauta, patrocinio y contacto comercial.">
+    <SimplePage title={t.simple.adsTitle} lede={t.simple.adsLede}>
       <p>
-        Para anunciar en Bilwi Noticias o patrocinar una sección, escríbenos desde la página de{" "}
-        <Link href="/contacto">contacto</Link> indicando “Publicidad” en el asunto.
+        {t.simple.adsBodyBefore} <Link href={localePath(locale, "/contacto")}>{t.simple.adsBodyLink}</Link>{" "}
+        {t.simple.adsBodyAfter}
       </p>
     </SimplePage>
   );

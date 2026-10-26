@@ -4,9 +4,18 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getEditorialCategorySettings } from "@/lib/editorial-admin-store";
+import { translationLocales } from "@/lib/i18n";
+import type { TranslationLocale } from "@/lib/i18n";
 import { editorialSections, featuredStories, recentStories } from "@/lib/site-data";
 
 export type NewsStatus = "published" | "draft" | "scheduled" | "archived";
+
+/** Versión de una noticia en otro idioma, escrita por la redacción. */
+export type StoryTranslation = {
+  title: string;
+  excerpt: string;
+  content: string;
+};
 
 export type NewsItem = {
   id: string;
@@ -23,6 +32,7 @@ export type NewsItem = {
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
+  translations?: Partial<Record<TranslationLocale, StoryTranslation>>;
 };
 
 export type NewsInput = Partial<Omit<NewsItem, "id" | "createdAt" | "updatedAt">> & {
@@ -173,6 +183,25 @@ function publicItems(items: NewsItem[]) {
   return items.filter((item) => item.status === "published");
 }
 
+/** Conserva solo las traducciones con título y texto; las vacías se descartan. */
+function cleanTranslations(value: unknown): NewsItem["translations"] {
+  if (!value || typeof value !== "object") return undefined;
+  const source = value as Record<string, Partial<StoryTranslation> | undefined>;
+  const out: Partial<Record<TranslationLocale, StoryTranslation>> = {};
+
+  for (const locale of translationLocales) {
+    const item = source[locale];
+    const title = typeof item?.title === "string" ? item.title.trim() : "";
+    const content = typeof item?.content === "string" ? item.content.trim() : "";
+    const excerpt = typeof item?.excerpt === "string" ? item.excerpt.trim() : "";
+    if (title && content) {
+      out[locale] = { title, excerpt, content };
+    }
+  }
+
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 function normalizeArticle(input: NewsInput, current?: NewsItem): NewsItem {
   const title = (input.title || current?.title || "Sin titulo").trim();
   const content = (input.content || current?.content || "").trim();
@@ -202,6 +231,7 @@ function normalizeArticle(input: NewsInput, current?: NewsItem): NewsItem {
     publishedAt: input.publishedAt || current?.publishedAt || now.toISOString(),
     createdAt: current?.createdAt || now.toISOString(),
     updatedAt: now.toISOString(),
+    translations: cleanTranslations(input.translations !== undefined ? input.translations : current?.translations),
   };
 }
 

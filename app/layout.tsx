@@ -3,6 +3,7 @@ import { Archivo, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import { NavigationProgress } from "@/components/navigation-progress";
 import { themeInitScript } from "@/lib/theme";
+import { getI18n } from "@/lib/i18n-server";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -18,20 +19,22 @@ const sourceSerif = Source_Serif_4({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000"),
-  title: {
-    default: "Bilwi Noticias",
-    template: "%s | Bilwi Noticias",
-  },
-  description:
-    "Periódico digital de Bilwi, Puerto Cabezas: información local, cultural y social de la Costa Caribe Norte de Nicaragua.",
-  openGraph: {
-    siteName: "Bilwi Noticias",
-    locale: "es_NI",
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000"),
+    title: {
+      default: "Bilwi Noticias",
+      template: "%s | Bilwi Noticias",
+    },
+    description: t.meta.siteDescription,
+    openGraph: {
+      siteName: "Bilwi Noticias",
+      locale: t.meta.ogLocale,
+      type: "website",
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [
@@ -42,14 +45,16 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { locale, t } = await getI18n();
+
   return (
     <html
-      lang="es"
+      lang={locale}
       data-scroll-behavior="smooth"
       className={`${archivo.variable} ${sourceSerif.variable}`}
       suppressHydrationWarning
@@ -59,7 +64,7 @@ export default function RootLayout({
       </head>
       <body>
         <a className="skip-link" href="#contenido">
-          Saltar al contenido
+          {t.common.skipToContent}
         </a>
         <NavigationProgress />
         {children}

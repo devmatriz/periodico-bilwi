@@ -36,7 +36,7 @@ A newspaper written from Bilwi, about Bilwi and the Costa Caribe Norte, rather t
 ## Brand Commitments
 
 - Name: **Bilwi Noticias**. Region descriptor: Costa Caribe (Norte) de Nicaragua.
-- Language: Spanish only. Miskitu or Creole English appear only when a story itself uses them; no invented translations.
+- Languages: Spanish is the primary language and the newsroom works in Spanish (the admin panel stays Spanish). The public site is multilingual: English first (October 2026), Miskitu (`miq`) next. Interface texts come from per-language dictionaries; stories carry optional per-language translations written by the newsroom. Untranslated stories appear in Spanish with a notice. No machine translation, and never invented Miskitu text: Miskitu copy must come from native speakers.
 
 ## Evidence on Hand
 

@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { SectionLanding, getSectionMeta } from "@/components/section-landing";
+import { SectionLanding, sectionMetadata } from "@/components/section-landing";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const section = await getSectionMeta("sociedad");
-  return {
-    title: section?.label ?? "Sociedad",
-    description: section?.description,
-  };
+  return sectionMetadata("sociedad");
 }
 
 export default function SociedadPage() {

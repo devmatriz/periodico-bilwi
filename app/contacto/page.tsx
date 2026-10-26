@@ -1,23 +1,24 @@
 import type { Metadata } from "next";
 import { PublicShell } from "@/components/public-shell";
 import { IconMail, IconMapPin, IconPhone } from "@/components/icons";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
 
-export const metadata: Metadata = {
-  title: "Contacto",
-  description: "Escribe a la redacción de Bilwi Noticias: notas de prensa, sugerencias y consultas publicitarias.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.contact.metaTitle, description: t.contact.metaDescription, alternates: localizedAlternates(locale, "/contacto") };
+}
 
 const email = "redaccion@bilwinoticias.com";
 
-export default function ContactoPage() {
+export default async function ContactoPage() {
+  const { t } = await getI18n();
+
   return (
     <PublicShell compact>
       <div className="wrap page">
         <header className="page-head">
-          <h1>Escribe a la redacción</h1>
-          <p className="page-lede">
-            Si tienes una nota de prensa, una sugerencia o una consulta publicitaria, este es el lugar.
-          </p>
+          <h1>{t.contact.title}</h1>
+          <p className="page-lede">{t.contact.lede}</p>
         </header>
 
         <div className="contact">
@@ -25,14 +26,14 @@ export default function ContactoPage() {
             <li>
               <IconMapPin />
               <div>
-                <h2>Dirección</h2>
-                <p>Barrio El Muelle, calle principal, Puerto Cabezas, Nicaragua.</p>
+                <h2>{t.contact.address}</h2>
+                <p>{t.contact.addressValue}</p>
               </div>
             </li>
             <li>
               <IconPhone />
               <div>
-                <h2>Teléfono</h2>
+                <h2>{t.contact.phone}</h2>
                 <p>
                   <a href="tel:+50527921234">+505 2792 1234</a>
                 </p>
@@ -41,7 +42,7 @@ export default function ContactoPage() {
             <li>
               <IconMail />
               <div>
-                <h2>Correo</h2>
+                <h2>{t.contact.email}</h2>
                 <p>
                   <a href={`mailto:${email}`}>{email}</a>
                 </p>
@@ -50,30 +51,30 @@ export default function ContactoPage() {
           </ul>
 
           <form className="panel contact-form" action={`mailto:${email}`} method="post" encType="text/plain">
-            <h2 className="panel-title">Enviar un mensaje</h2>
-            <p className="form-hint">El mensaje se abrirá en tu aplicación de correo para que lo envíes.</p>
+            <h2 className="panel-title">{t.contact.formTitle}</h2>
+            <p className="form-hint">{t.contact.formHint}</p>
             <div className="form-row">
               <div className="field">
-                <label htmlFor="contact-name">Nombre completo</label>
+                <label htmlFor="contact-name">{t.contact.fullName}</label>
                 <input id="contact-name" name="nombre" type="text" autoComplete="name" required />
               </div>
               <div className="field">
-                <label htmlFor="contact-email">Correo electrónico</label>
+                <label htmlFor="contact-email">{t.contact.yourEmail}</label>
                 <input id="contact-email" name="correo" type="email" autoComplete="email" required />
               </div>
             </div>
             <div className="field">
-              <label htmlFor="contact-subject">Asunto</label>
-              <input id="contact-subject" name="asunto" type="text" placeholder="Noticia, sugerencia, publicidad…" />
+              <label htmlFor="contact-subject">{t.contact.subject}</label>
+              <input id="contact-subject" name="asunto" type="text" placeholder={t.contact.subjectPlaceholder} />
             </div>
             <div className="field">
-              <label htmlFor="contact-message">Mensaje</label>
+              <label htmlFor="contact-message">{t.contact.message}</label>
               <textarea id="contact-message" name="mensaje" rows={7} required />
             </div>
             <div className="form-foot">
               <span />
               <button className="button button--primary" type="submit">
-                Enviar mensaje
+                {t.contact.send}
               </button>
             </div>
           </form>

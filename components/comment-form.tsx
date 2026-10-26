@@ -4,12 +4,25 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+type CommentLabels = {
+  name: string;
+  email: string;
+  emailOptional: string;
+  comment: string;
+  hint: string;
+  sending: string;
+  send: string;
+  success: string;
+  error: string;
+};
+
 type Props = {
   slug: string;
   articleTitle: string;
+  labels: CommentLabels;
 };
 
-export function CommentForm({ slug, articleTitle }: Props) {
+export function CommentForm({ slug, articleTitle, labels }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,20 +53,17 @@ export function CommentForm({ slug, articleTitle }: Props) {
       const data = (await response.json().catch(() => null)) as { message?: string } | null;
 
       if (!response.ok) {
-        throw new Error(data?.message || "No se pudo enviar el comentario. Revisa tu conexión e inténtalo de nuevo.");
+        throw new Error(data?.message || labels.error);
       }
 
       setName("");
       setEmail("");
       setMessage("");
-      setNotice(data?.message || "Gracias. Tu comentario se publicará cuando la redacción lo revise.");
+      // El mensaje del servidor está en español: se usa el texto del idioma de la página.
+      setNotice(labels.success);
       router.refresh();
     } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "No se pudo enviar el comentario. Revisa tu conexión e inténtalo de nuevo.",
-      );
+      setError(submitError instanceof Error ? submitError.message : labels.error);
     } finally {
       setLoading(false);
     }
@@ -63,7 +73,7 @@ export function CommentForm({ slug, articleTitle }: Props) {
     <form className="comment-form" onSubmit={handleSubmit} aria-busy={loading}>
       <div className="form-row">
         <div className="field">
-          <label htmlFor="comment-name">Nombre</label>
+          <label htmlFor="comment-name">{labels.name}</label>
           <input
             id="comment-name"
             required
@@ -74,7 +84,7 @@ export function CommentForm({ slug, articleTitle }: Props) {
         </div>
         <div className="field">
           <label htmlFor="comment-email">
-            Correo electrónico <span className="field-optional">opcional, no se publica</span>
+            {labels.email} <span className="field-optional">{labels.emailOptional}</span>
           </label>
           <input
             id="comment-email"
@@ -87,7 +97,7 @@ export function CommentForm({ slug, articleTitle }: Props) {
       </div>
 
       <div className="field">
-        <label htmlFor="comment-message">Comentario</label>
+        <label htmlFor="comment-message">{labels.comment}</label>
         <textarea
           id="comment-message"
           required
@@ -98,9 +108,9 @@ export function CommentForm({ slug, articleTitle }: Props) {
       </div>
 
       <div className="form-foot">
-        <p className="form-hint">La redacción revisa cada comentario antes de publicarlo.</p>
+        <p className="form-hint">{labels.hint}</p>
         <button className="button button--primary" type="submit" disabled={loading}>
-          {loading ? "Enviando…" : "Enviar comentario"}
+          {loading ? labels.sending : labels.send}
         </button>
       </div>
 

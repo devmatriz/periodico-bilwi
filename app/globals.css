@@ -1046,6 +1046,43 @@ button {
   gap: var(--s-4);
 }
 
+/* Selector de idioma de la cabecera: ES | EN. */
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.lang-switch a {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  min-height: 30px;
+  padding: 0 8px;
+  color: var(--ink-2);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.lang-switch a + a {
+  border-left: 1px solid var(--rule);
+}
+
+.lang-switch a:hover {
+  color: var(--ink);
+  background: var(--wash);
+}
+
+.lang-switch a[aria-current="true"] {
+  background: var(--tile-bg);
+  color: var(--tile-ink);
+}
+
 .auth-panel-top {
   display: flex;
   align-items: center;
@@ -1639,6 +1676,10 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+.story-label-lang {
+  font-style: italic;
+}
+
 .story-label-section {
   color: var(--green);
   font-weight: 700;
@@ -1823,6 +1864,16 @@ a.story-label-section:hover {
 .breadcrumb a:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.article-lang-notice {
+  margin-bottom: var(--s-3);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--info-bg);
+  color: var(--info-ink);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .article-title {
@@ -3831,6 +3882,94 @@ a.story-label-section:hover {
     position: sticky;
     top: 84px;
   }
+}
+
+.editor-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.editor-head .panel-title {
+  margin-bottom: 0;
+}
+
+/* Pestañas de idioma del editor. */
+.lang-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-panel);
+  background: var(--wash);
+}
+
+.lang-tab {
+  display: grid;
+  justify-items: start;
+  gap: 1px;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-align: left;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.lang-tab:hover {
+  color: var(--ink);
+}
+
+.lang-tab[aria-selected="true"] {
+  background: var(--paper);
+  border-color: var(--rule);
+  color: var(--ink);
+}
+
+.lang-tab-state {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.lang-tab--ok .lang-tab-state {
+  color: var(--ok-ink);
+}
+
+.lang-tab--warn .lang-tab-state {
+  color: var(--warn-ink);
+}
+
+.lang-tab--empty .lang-tab-state {
+  color: var(--ink-3);
+}
+
+.editor-text {
+  display: grid;
+  gap: var(--s-5);
+}
+
+.editor-lang-note {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-2);
+  line-height: 1.5;
+}
+
+.editor-lang-note code {
+  font-size: 0.8125rem;
+}
+
+.flag--lang {
+  background: var(--green);
+  color: var(--on-green);
 }
 
 .editor-main {

@@ -1,41 +1,49 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SimplePage } from "@/components/simple-page";
-import { publicSections } from "@/lib/sections";
+import { localePath } from "@/lib/i18n";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
+import { localizeSections } from "@/lib/localize";
 
-export const metadata: Metadata = { title: "Mapa del sitio" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.simple.sitemapTitle, alternates: localizedAlternates(locale, "/mapa") };
+}
 
-const groups = [
-  {
-    title: "Noticias",
-    links: [
-      { href: "/", label: "Portada" },
-      { href: "/noticias", label: "Todas las noticias y búsqueda" },
-      { href: "/categorias", label: "Secciones" },
-    ],
-  },
-  {
-    title: "Secciones",
-    links: publicSections.map((section) => ({ href: section.href, label: section.label })),
-  },
-  {
-    title: "El periódico",
-    links: [
-      { href: "/nosotros", label: "Sobre nosotros" },
-      { href: "/contacto", label: "Contacto" },
-      { href: "/publicidad", label: "Publicidad" },
-      { href: "/marca", label: "Identidad visual" },
-      { href: "/etica", label: "Ética periodística" },
-      { href: "/politica-privacidad", label: "Política de privacidad" },
-      { href: "/terminos", label: "Términos de servicio" },
-      { href: "/login", label: "Acceso de la redacción" },
-    ],
-  },
-];
+export default async function MapaPage() {
+  const { locale, t } = await getI18n();
+  const href = (path: string) => localePath(locale, path);
 
-export default function MapaPage() {
+  const groups = [
+    {
+      title: t.simple.sitemapNews,
+      links: [
+        { href: href("/"), label: t.nav.home },
+        { href: href("/noticias"), label: t.simple.sitemapAllNews },
+        { href: href("/categorias"), label: t.nav.sections },
+      ],
+    },
+    {
+      title: t.footer.sectionsTitle,
+      links: localizeSections(locale).map((section) => ({ href: section.href, label: section.label })),
+    },
+    {
+      title: t.simple.sitemapPaper,
+      links: [
+        { href: href("/nosotros"), label: t.footer.aboutLink },
+        { href: href("/contacto"), label: t.nav.contact },
+        { href: href("/publicidad"), label: t.footer.ads },
+        { href: href("/marca"), label: t.footer.identity },
+        { href: href("/etica"), label: t.footer.ethics },
+        { href: href("/politica-privacidad"), label: t.footer.privacy },
+        { href: href("/terminos"), label: t.footer.terms },
+        { href: "/login", label: t.simple.sitemapNewsroom },
+      ],
+    },
+  ];
+
   return (
-    <SimplePage title="Mapa del sitio" lede="Todas las páginas de Bilwi Noticias en un solo lugar.">
+    <SimplePage title={t.simple.sitemapTitle} lede={t.simple.sitemapLede}>
       <div className="sitemap">
         {groups.map((group) => (
           <section key={group.title}>

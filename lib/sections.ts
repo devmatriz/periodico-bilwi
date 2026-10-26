@@ -1,4 +1,6 @@
 import type { NewsItem } from "@/lib/content-store";
+import { intlLocale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 
 export type PublicSection = {
   slug: string;
@@ -101,16 +103,16 @@ export function storyDate(story: NewsItem) {
   return story.publishedAt || story.createdAt || story.updatedAt;
 }
 
-export function formatShortDate(value: string) {
-  return new Intl.DateTimeFormat("es-NI", {
+export function formatShortDate(value: string, locale: Locale = "es") {
+  return new Intl.DateTimeFormat(intlLocale[locale], {
     timeZone: "America/Managua",
     day: "numeric",
     month: "short",
   }).format(new Date(value));
 }
 
-export function formatLongDate(value: string | Date) {
-  return new Intl.DateTimeFormat("es-NI", {
+export function formatLongDate(value: string | Date, locale: Locale = "es") {
+  return new Intl.DateTimeFormat(intlLocale[locale], {
     timeZone: "America/Managua",
     weekday: "long",
     day: "numeric",
@@ -119,8 +121,8 @@ export function formatLongDate(value: string | Date) {
   }).format(new Date(value));
 }
 
-export function formatArticleDate(value: string) {
-  return new Intl.DateTimeFormat("es-NI", {
+export function formatArticleDate(value: string, locale: Locale = "es") {
+  return new Intl.DateTimeFormat(intlLocale[locale], {
     timeZone: "America/Managua",
     day: "numeric",
     month: "long",

@@ -1,34 +1,40 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PublicShell } from "@/components/public-shell";
-import { StoryImage, StoryLabel, StoryRow, Tile } from "@/components/story";
+import { StoryImage, StoryLabel, StoryRow, Tile, storyLang } from "@/components/story";
 import { getCategorias, getPublicNoticias } from "@/lib/content-store";
-import { displayCategory, publicSections, storiesForSection } from "@/lib/sections";
+import { localePath } from "@/lib/i18n";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
+import { localizeSections, localizeStories } from "@/lib/localize";
+import { storiesForSection } from "@/lib/sections";
 
-export async function getSectionMeta(slug: string) {
-  const section = publicSections.find((item) => item.slug === slug);
-  if (!section) return null;
+async function getSection(slug: string) {
+  const [{ locale, t }, settings] = await Promise.all([getI18n(), getCategorias()]);
+  const sections = localizeSections(locale, settings);
+  return { locale, t, sections, section: sections.find((item) => item.slug === slug) ?? null };
+}
 
-  const settings = (await getCategorias()).find((item) => item.slug === slug);
+/** Metadatos de una página de sección, en el idioma de la página. */
+export async function sectionMetadata(slug: string): Promise<Metadata> {
+  const { locale, section } = await getSection(slug);
   return {
-    ...section,
-    label: displayCategory(settings?.label ?? section.label),
-    title: settings?.title ?? section.title,
-    description: settings?.description ?? section.description,
-    active: settings?.active ?? true,
+    title: section?.label,
+    description: section?.description,
+    alternates: localizedAlternates(locale, `/${slug}`),
   };
 }
 
 export async function SectionLanding({ slug }: { slug: string }) {
-  const section = await getSectionMeta(slug);
+  const { locale, t, sections, section } = await getSection(slug);
 
   if (!section || !section.active) {
     notFound();
   }
 
-  const stories = storiesForSection(await getPublicNoticias(), slug);
+  const stories = storiesForSection(localizeStories(await getPublicNoticias(), locale), slug) as ReturnType<typeof localizeStories>;
   const [lead, ...rest] = stories;
-  const others = publicSections.filter((item) => item.slug !== slug);
+  const others = sections.filter((item) => item.slug !== slug);
 
   return (
     <PublicShell compact>
@@ -43,7 +49,7 @@ export async function SectionLanding({ slug }: { slug: string }) {
           </div>
           <p className="section-board-count">
             <span className="tile tile--md">{String(stories.length).padStart(2, "0")}</span>
-            <span>{stories.length === 1 ? "nota publicada" : "notas publicadas"}</span>
+            <span>{t.section.published(stories.length)}</span>
           </p>
         </div>
       </section>
@@ -52,15 +58,19 @@ export async function SectionLanding({ slug }: { slug: string }) {
         {lead ? (
           <>
             <article className="section-lead">
-              <Link className="section-lead-media" href={`/noticias/${lead.slug}`} tabIndex={-1} aria-hidden="true">
+              <Link className="section-lead-media" href={lead.href} tabIndex={-1} aria-hidden="true">
                 <StoryImage story={lead} priority sizes="(min-width: 900px) 640px, 100vw" />
               </Link>
               <div className="section-lead-body">
                 <Tile index={0} size="lg" />
-                <h2 className="section-lead-headline">
-                  <Link href={`/noticias/${lead.slug}`}>{lead.title}</Link>
+                <h2 className="section-lead-headline" lang={storyLang(lead)}>
+                  <Link href={lead.href}>{lead.title}</Link>
                 </h2>
-                {lead.excerpt ? <p className="story-excerpt">{lead.excerpt}</p> : null}
+                {lead.excerpt ? (
+                  <p className="story-excerpt" lang={storyLang(lead)}>
+                    {lead.excerpt}
+                  </p>
+                ) : null}
                 <StoryLabel story={lead} author />
               </div>
             </article>
@@ -75,16 +85,16 @@ export async function SectionLanding({ slug }: { slug: string }) {
           </>
         ) : (
           <div className="empty-state">
-            <h2>Aún no hay notas en {section.label}</h2>
-            <p>Cuando la redacción publique en esta sección, aparecerán aquí. Mientras tanto, revisa lo último de Bilwi.</p>
-            <Link className="button button--secondary" href="/noticias">
-              Ver todas las noticias
+            <h2>{t.section.emptyTitle(section.label)}</h2>
+            <p>{t.section.emptyText}</p>
+            <Link className="button button--secondary" href={localePath(locale, "/noticias")}>
+              {t.section.emptyButton}
             </Link>
           </div>
         )}
 
-        <nav className="other-sections" aria-label="Otras secciones">
-          <h2 className="rail-title">Otras secciones</h2>
+        <nav className="other-sections" aria-label={t.section.others}>
+          <h2 className="rail-title">{t.section.others}</h2>
           <ul>
             {others.map((item) => (
               <li key={item.slug}>

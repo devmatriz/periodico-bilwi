@@ -325,6 +325,9 @@ The isotipo, **"La Ola"**, is a board tile (100×100, 7-unit corners) with a cut
 ### Video (YouTube / Facebook)
 Videos are linked, never hosted: the editor pastes a YouTube or Facebook link (videos, Shorts, Reels) and it sits in the body like an image, at up to 760px. Until the reader taps play, only a facade renders. YouTube gets its thumbnail, proxied through the image optimizer, and Facebook gets a board-colour panel. Both show a 72px round play button on translucent ink, which turns teal on hover or focus, plus a small platform tag. Tapping swaps in the platform's player (YouTube in its no-cookie mode). Shorts and Reels use a 9:16 frame capped at 360px. The figcaption carries the caption in Secondary Ink and, aligned right, the teal "Ver en {red} ↗" link.
 
+### Language switch and translations
+The masthead utility row carries a compact segmented switch («ES | EN», Miskitu «MIQ» to come): 1px line border, 0.75rem bold labels, and the current language as an inverted tile. It is a plain link to the same page in the other language (`/en/…` prefix), so the whole page reloads with the right `lang`. Untranslated stories keep their Spanish text marked `lang="es"`; in lists their label ends with an italic «In Spanish», and the article opens with an Info notice above the headline. In the editor, language tabs sit at the top right of the text panel (wash track, selected tab on paper), each with its state in small print: Original, Traducida (ok ink), Incompleta (warn ink), Sin traducir (Secondary Ink).
+
 ### Theme toggle
 A 36px square button (32px in the masthead utility row, also on the login screen and the admin bar): moon in light mode, sun in dark mode, 1px line border that darkens on hover. The preference is saved for the whole site and kept in sync across open tabs.
 

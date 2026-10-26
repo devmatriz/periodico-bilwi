@@ -1,21 +1,19 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
-type NavItem = { href: string; label: string };
+type NavItem = { href: string; label: string; path: string };
 
-export function SectionNav({ items }: { items: NavItem[] }) {
-  const pathname = usePathname();
+/** Menú de secciones. `current` es la dirección actual sin prefijo de idioma. */
+export function SectionNav({ items, current, label }: { items: NavItem[]; current: string; label: string }) {
+  const path = current.split("?")[0] || "/";
 
   return (
-    <nav className="section-nav" aria-label="Secciones">
+    <nav className="section-nav" aria-label={label}>
       <ul>
         {items.map((item) => {
-          const current = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+          const active = item.path === "/" ? path === "/" : path === item.path || path.startsWith(`${item.path}/`);
           return (
             <li key={item.href}>
-              <Link href={item.href} aria-current={current ? "page" : undefined}>
+              <Link href={item.href} aria-current={active ? "page" : undefined}>
                 {item.label}
               </Link>
             </li>

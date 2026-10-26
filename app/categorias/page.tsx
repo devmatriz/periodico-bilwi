@@ -1,44 +1,38 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicShell } from "@/components/public-shell";
-import { StoryLabel } from "@/components/story";
+import { StoryLabel, storyLang } from "@/components/story";
 import { IconArrowRight } from "@/components/icons";
 import { getCategorias, getPublicNoticias } from "@/lib/content-store";
-import { displayCategory, publicSections, storiesForSection } from "@/lib/sections";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
+import { localizeSections, localizeStories } from "@/lib/localize";
+import { storiesForSection } from "@/lib/sections";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Secciones",
-  description: "Las secciones de Bilwi Noticias: locales, cultura, sociedad, economía, deportes y opinión.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return {
+    title: t.sectionsPage.metaTitle,
+    description: t.sectionsPage.metaDescription,
+    alternates: localizedAlternates(locale, "/categorias"),
+  };
+}
 
 export default async function CategoriasPage() {
-  const [stories, settings] = await Promise.all([getPublicNoticias(), getCategorias()]);
-  const settingsBySlug = new Map(settings.map((item) => [item.slug, item]));
+  const [{ locale, t }, published, settings] = await Promise.all([getI18n(), getPublicNoticias(), getCategorias()]);
+  const stories = localizeStories(published, locale);
 
-  const sections = publicSections
-    .map((section) => {
-      const setting = settingsBySlug.get(section.slug);
-      return {
-        ...section,
-        label: displayCategory(setting?.label ?? section.label),
-        title: setting?.title ?? section.title,
-        description: setting?.description ?? section.description,
-        active: setting?.active ?? true,
-        stories: storiesForSection(stories, section.slug),
-      };
-    })
-    .filter((section) => section.active);
+  const sections = localizeSections(locale, settings)
+    .filter((section) => section.active)
+    .map((section) => ({ ...section, stories: storiesForSection(stories, section.slug) as typeof stories }));
 
   return (
     <PublicShell compact>
       <div className="wrap page">
         <header className="page-head">
-          <h1>Secciones</h1>
-          <p className="page-lede">
-            {sections.length} secciones y {stories.length} {stories.length === 1 ? "noticia publicada" : "noticias publicadas"}. Elige por dónde empezar.
-          </p>
+          <h1>{t.sectionsPage.title}</h1>
+          <p className="page-lede">{t.sectionsPage.lede(sections.length, stories.length)}</p>
         </header>
 
         <ol className="section-directory">
@@ -59,16 +53,16 @@ export default async function CategoriasPage() {
                 <div className="section-directory-latest">
                   {latest ? (
                     <>
-                      <h3>
-                        <Link href={`/noticias/${latest.slug}`}>{latest.title}</Link>
+                      <h3 lang={storyLang(latest)}>
+                        <Link href={latest.href}>{latest.title}</Link>
                       </h3>
                       <StoryLabel story={latest} />
                     </>
                   ) : (
-                    <p className="section-directory-empty">Sin notas publicadas todavía.</p>
+                    <p className="section-directory-empty">{t.sectionsPage.empty}</p>
                   )}
                 </div>
-                <Link className="section-directory-go" href={section.href} aria-label={`Abrir ${section.label}`}>
+                <Link className="section-directory-go" href={section.href} aria-label={t.sectionsPage.open(section.label)}>
                   <IconArrowRight size={20} />
                 </Link>
               </li>
