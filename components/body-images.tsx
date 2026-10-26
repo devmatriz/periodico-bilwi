@@ -7,8 +7,7 @@ import { IconImage, IconTrash, IconVideo } from "@/components/icons";
 import { imageMarkup, joinParagraphs, parseBlock, splitParagraphs, videoMarkup } from "@/lib/article-body";
 import type { BodyBlock } from "@/lib/article-body";
 import { uploadImage } from "@/lib/upload-image";
-import { capturePoster, checkClip, uploadClip } from "@/lib/upload-video";
-import { MAX_CLIP_MB, MAX_CLIP_SECONDS, isValidFullVideoUrl, platformName } from "@/lib/video";
+import { parseVideoUrl } from "@/lib/video";
 
 type Props = {
   content: string;
@@ -20,11 +19,13 @@ type Props = {
 
 type MediaBlock = Exclude<BodyBlock, { type: "paragraph" }>;
 
-/** Clips del cuerpo que todavía no tienen un enlace válido al video completo. */
-export function clipsMissingLink(content: string) {
+const VIDEO_HINT = "Pega un enlace de YouTube o Facebook (videos, Shorts o Reels).";
+
+/** Videos del cuerpo cuyo enlace no es de YouTube ni de Facebook. */
+export function invalidVideoLinks(content: string) {
   return splitParagraphs(content)
     .map(parseBlock)
-    .filter((block) => block.type === "video" && !isValidFullVideoUrl(block.full)).length;
+    .filter((block) => block.type === "video" && !parseVideoUrl(block.url)).length;
 }
 
 /** Inserta la marca después del párrafo donde está el cursor (o al final). */
@@ -45,6 +46,9 @@ function insertAtCursor(content: string, cursor: number | null, markups: string[
 export function BodyImages({ content, onChange, cursorRef, onBusyChange }: Props) {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [videoFormOpen, setVideoFormOpen] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoError, setVideoError] = useState("");
 
   const paragraphs = splitParagraphs(content);
   const media = paragraphs
@@ -84,28 +88,16 @@ export function BodyImages({ content, onChange, cursorRef, onBusyChange }: Props
     setBusy("");
   }
 
-  async function addClip(file: File | undefined) {
-    if (!file) return;
-    const cursor = cursorRef.current;
-    setError("");
-
-    try {
-      setBusy("Revisando el clip…");
-      const problem = await checkClip(file);
-      if (problem) {
-        setError(problem);
-        return;
-      }
-
-      const src = await uploadClip(file, (fraction) => setBusy(`Subiendo clip… ${Math.round(fraction * 100)}%`));
-      setBusy("Preparando la portada…");
-      const poster = await capturePoster(file);
-      onChange(insertAtCursor(content, cursor, [videoMarkup(src, "", poster, "")]));
-    } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "No se pudo subir el clip.");
-    } finally {
-      setBusy("");
+  function addVideo() {
+    const source = parseVideoUrl(videoUrl);
+    if (!source) {
+      setVideoError(`Ese enlace no es un video de YouTube ni de Facebook. ${VIDEO_HINT}`);
+      return;
     }
+    onChange(insertAtCursor(content, cursorRef.current, [videoMarkup(source.url)]));
+    setVideoUrl("");
+    setVideoError("");
+    setVideoFormOpen(false);
   }
 
   function update(index: number, next: string | null) {
@@ -132,18 +124,18 @@ export function BodyImages({ content, onChange, cursorRef, onBusyChange }: Props
   }
 
   let imageNumber = 0;
-  let clipNumber = 0;
+  let videoNumber = 0;
 
   return (
     <section className="body-images" aria-labelledby="body-images-title">
       <div className="body-images-head">
         <div>
           <h3 id="body-images-title" className="body-images-title">
-            Imágenes y clips en el cuerpo <span className="segmented-count">{media.length}</span>
+            Imágenes y videos en el cuerpo <span className="segmented-count">{media.length}</span>
           </h3>
           <p className="form-hint">
-            Se colocan después del párrafo donde dejaste el cursor; luego puedes moverlos. Clips: hasta {MAX_CLIP_SECONDS}{" "}
-            segundos y {MAX_CLIP_MB} MB, siempre con el enlace al video completo.
+            Se colocan después del párrafo donde dejaste el cursor; luego puedes moverlos. Los videos se enlazan desde
+            YouTube o Facebook y no ocupan espacio en el servidor.
           </p>
         </div>
         <div className="body-images-buttons">
@@ -163,23 +155,62 @@ export function BodyImages({ content, onChange, cursorRef, onBusyChange }: Props
               event.target.value = "";
             }}
           />
-          <label className={`button button--secondary file-button${busy ? " is-disabled" : ""}`} htmlFor="body-clip-input">
-            <IconVideo size={18} />
-            Añadir clip de video
-          </label>
-          <input
-            id="body-clip-input"
-            className="visually-hidden"
-            type="file"
-            accept="video/mp4,video/quicktime"
-            disabled={busy}
-            onChange={(event) => {
-              void addClip(event.target.files?.[0]);
-              event.target.value = "";
+          <button
+            className="button button--secondary"
+            type="button"
+            aria-expanded={videoFormOpen}
+            aria-controls="body-video-form"
+            onClick={() => {
+              setVideoFormOpen((open) => !open);
+              setVideoError("");
             }}
-          />
+          >
+            <IconVideo size={18} />
+            Añadir video
+          </button>
         </div>
       </div>
+
+      {videoFormOpen ? (
+        <div id="body-video-form" className="body-video-form">
+          <div className="field">
+            <label htmlFor="body-video-url">
+              Enlace del video <span className="field-optional">{VIDEO_HINT}</span>
+            </label>
+            <div className="body-video-row">
+              <input
+                id="body-video-url"
+                type="url"
+                inputMode="url"
+                autoFocus
+                value={videoUrl}
+                placeholder="https://www.youtube.com/watch?v=…"
+                aria-invalid={videoError ? true : undefined}
+                aria-describedby={videoError ? "body-video-error" : undefined}
+                onChange={(event) => {
+                  setVideoUrl(event.target.value);
+                  if (videoError) setVideoError("");
+                }}
+                onKeyDown={(event) => {
+                  // Enter inserta el video en lugar de enviar el formulario de la noticia.
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addVideo();
+                  }
+                }}
+              />
+              <button className="button button--primary" type="button" onClick={addVideo} disabled={!videoUrl.trim()}>
+                Insertar
+              </button>
+            </div>
+            {videoError ? (
+              <p id="body-video-error" className="field-error">
+                {videoError}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <div aria-live="polite">
         {busy ? <p className="notice notice--info">{status}</p> : null}
@@ -193,45 +224,45 @@ export function BodyImages({ content, onChange, cursorRef, onBusyChange }: Props
       {media.length > 0 ? (
         <ol className="body-images-list">
           {media.map(({ index, block }) => {
-            const isClip = block.type === "video";
-            const number = isClip ? ++clipNumber : ++imageNumber;
-            const label = isClip ? `clip ${number}` : `imagen ${number}`;
-            const linkOk = isClip && isValidFullVideoUrl(block.full);
+            const isVideo = block.type === "video";
+            const number = isVideo ? ++videoNumber : ++imageNumber;
+            const label = isVideo ? `video ${number}` : `imagen ${number}`;
+            const source = block.type === "video" ? parseVideoUrl(block.url) : null;
 
             return (
-              <li key={`${block.src}-${index}`} className={`body-image${isClip ? " body-image--clip" : ""}`}>
+              <li key={`${block.type === "video" ? block.url : block.src}-${index}`} className={`body-image${isVideo ? " body-image--video" : ""}`}>
                 <span className="body-image-thumb">
-                  {isClip ? (
-                    block.poster ? (
-                      <SafeImage src={block.poster} label="Clip" sizes="128px" />
+                  {block.type === "video" ? (
+                    source?.thumbnail ? (
+                      <SafeImage src={source.thumbnail} label="Video" sizes="128px" />
                     ) : (
-                      <span className="image-fallback">Clip</span>
+                      <span className="image-fallback">{source?.platform ?? "Video"}</span>
                     )
                   ) : (
                     <SafeImage src={block.src} label={String(number)} sizes="128px" />
                   )}
-                  {isClip ? (
+                  {isVideo ? (
                     <span className="body-image-kind">
-                      <IconVideo size={14} /> Clip
+                      <IconVideo size={14} /> {source?.platform ?? "Video"}
                     </span>
                   ) : null}
                 </span>
                 <div className="body-image-main">
                   <div className="field">
                     <label htmlFor={`body-caption-${index}`}>
-                      {isClip ? `Pie del clip ${number}` : `Pie de foto ${number}`}{" "}
+                      {isVideo ? `Pie del video ${number}` : `Pie de foto ${number}`}{" "}
                       <span className="field-optional">{positionLabel(index)}</span>
                     </label>
                     <input
                       id={`body-caption-${index}`}
                       type="text"
                       value={block.caption}
-                      placeholder={isClip ? "Qué muestra el clip" : "Describe la imagen o indica el crédito"}
+                      placeholder={isVideo ? "Qué muestra el video" : "Describe la imagen o indica el crédito"}
                       onChange={(event) =>
                         update(
                           index,
                           block.type === "video"
-                            ? videoMarkup(block.src, event.target.value, block.poster, block.full)
+                            ? videoMarkup(block.url, event.target.value)
                             : imageMarkup(block.src, event.target.value),
                         )
                       }
@@ -240,25 +271,24 @@ export function BodyImages({ content, onChange, cursorRef, onBusyChange }: Props
 
                   {block.type === "video" ? (
                     <div className="field">
-                      <label htmlFor={`body-full-${index}`}>
-                        Enlace al video completo{" "}
+                      <label htmlFor={`body-video-${index}`}>
+                        Enlace{" "}
                         <span className="field-optional">
-                          {linkOk ? `se mostrará «Ver el video completo en ${platformName(block.full)}»` : "obligatorio: YouTube, Facebook u otra red"}
+                          {source ? `se mostrará el reproductor de ${source.platform}` : "debe ser de YouTube o Facebook"}
                         </span>
                       </label>
                       <input
-                        id={`body-full-${index}`}
+                        id={`body-video-${index}`}
                         type="url"
                         inputMode="url"
-                        value={block.full}
-                        placeholder="https://www.youtube.com/watch?v=…"
-                        aria-invalid={!linkOk || undefined}
-                        aria-describedby={!linkOk ? `body-full-error-${index}` : undefined}
-                        onChange={(event) => update(index, videoMarkup(block.src, block.caption, block.poster, event.target.value))}
+                        value={block.url}
+                        aria-invalid={!source || undefined}
+                        aria-describedby={!source ? `body-video-error-${index}` : undefined}
+                        onChange={(event) => update(index, videoMarkup(event.target.value, block.caption))}
                       />
-                      {!linkOk ? (
-                        <p id={`body-full-error-${index}`} className="field-error">
-                          Pega el enlace donde está el video completo. Sin él no se puede publicar.
+                      {!source ? (
+                        <p id={`body-video-error-${index}`} className="field-error">
+                          Este enlace no es un video de YouTube ni de Facebook. Corrígelo o quita el video para publicar.
                         </p>
                       ) : null}
                     </div>
@@ -276,6 +306,11 @@ export function BodyImages({ content, onChange, cursorRef, onBusyChange }: Props
                     >
                       Bajar
                     </button>
+                    {source ? (
+                      <a className="button button--ghost button--small" href={source.url} target="_blank" rel="noopener noreferrer">
+                        Abrir en {source.platform}
+                      </a>
+                    ) : null}
                     <button
                       className="icon-button icon-button--danger"
                       type="button"
@@ -292,7 +327,7 @@ export function BodyImages({ content, onChange, cursorRef, onBusyChange }: Props
           })}
         </ol>
       ) : (
-        <p className="body-images-empty">Todavía no hay imágenes ni clips dentro del texto.</p>
+        <p className="body-images-empty">Todavía no hay imágenes ni videos dentro del texto.</p>
       )}
     </section>
   );

@@ -5,7 +5,7 @@ import { useState } from "react";
 
 // Solo se optimizan las fuentes que next.config.ts permite; el resto se sirve tal cual.
 function canOptimize(src: string) {
-  return src.startsWith("/") || src.startsWith("https://images.unsplash.com/");
+  return src.startsWith("/") || src.startsWith("https://images.unsplash.com/") || src.startsWith("https://i.ytimg.com/vi/");
 }
 
 type SafeImageProps = {

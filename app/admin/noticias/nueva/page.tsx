@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BodyImages, clipsMissingLink } from "@/components/body-images";
+import { BodyImages, invalidVideoLinks } from "@/components/body-images";
 import { IconImage } from "@/components/icons";
 import { parseBlock, splitParagraphs } from "@/lib/article-body";
 import { uploadImage } from "@/lib/upload-image";
@@ -113,15 +113,15 @@ export default function NuevaNoticiaPage() {
 
     setTitleError(false);
 
-    const missing = clipsMissingLink(form.content);
-    if (missing > 0) {
+    const invalid = invalidVideoLinks(form.content);
+    if (invalid > 0) {
       setMessageTone("error");
       setMessage(
-        missing === 1
-          ? "Falta el enlace al video completo en un clip del cuerpo."
-          : `Faltan los enlaces al video completo en ${missing} clips del cuerpo.`,
+        invalid === 1
+          ? "Hay un video con un enlace que no es de YouTube ni de Facebook."
+          : `Hay ${invalid} videos con enlaces que no son de YouTube ni de Facebook.`,
       );
-      document.querySelector<HTMLInputElement>('[id^="body-full-"][aria-invalid="true"]')?.focus();
+      document.querySelector<HTMLInputElement>('[id^="body-video-"][aria-invalid="true"]')?.focus();
       return;
     }
 
@@ -179,6 +179,9 @@ export default function NuevaNoticiaPage() {
   return (
     <form
       className="editor"
+      // La imagen subida se guarda como ruta relativa (/uploads/…), que el navegador no acepta como
+      // type="url" y bloqueaba «Publicar» sin aviso. Las validaciones las hace submit().
+      noValidate
       onSubmit={(event) => {
         event.preventDefault();
         void submit("published");
@@ -259,8 +262,8 @@ export default function NuevaNoticiaPage() {
             aria-describedby="news-content-hint"
           />
           <p id="news-content-hint" className="form-hint">
-            Las imágenes aparecen en el texto como <code>![pie](dirección)</code> y los clips como{" "}
-            <code>!video[pie](dirección …)</code>. Puedes editarlos abajo.
+            Las imágenes aparecen en el texto como <code>![pie](dirección)</code> y los videos como{" "}
+            <code>!video[pie](enlace)</code>. Puedes editarlos abajo.
           </p>
         </div>
 

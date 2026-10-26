@@ -5,8 +5,8 @@ import { notFound } from "next/navigation";
 import { CommentForm } from "@/components/comment-form";
 import { PublicShell } from "@/components/public-shell";
 import { StoryRow } from "@/components/story";
-import { ArticleClip } from "@/components/article-clip";
 import { SafeImage } from "@/components/story-image";
+import { VideoEmbed } from "@/components/video-embed";
 import { parseBlock, splitParagraphs } from "@/lib/article-body";
 import { IconArrowRight } from "@/components/icons";
 import { getCommentsForSlug } from "@/lib/comment-store";
@@ -140,13 +140,7 @@ export default async function NoticiaDetallePage({ params }: Props) {
           <div className="article-body">
             {body.map((block, index) =>
               block.type === "video" ? (
-                <ArticleClip
-                  key={`${article.slug}-${index}`}
-                  src={block.src}
-                  poster={block.poster}
-                  full={block.full}
-                  caption={block.caption}
-                />
+                <VideoEmbed key={`${article.slug}-${index}`} url={block.url} caption={block.caption} />
               ) : block.type === "image" ? (
                 <figure key={`${article.slug}-${index}`} className="article-inline-figure">
                   <SafeImage

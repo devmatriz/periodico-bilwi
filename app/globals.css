@@ -1907,62 +1907,120 @@ a.story-label-section:hover {
   aspect-ratio: 3 / 2;
 }
 
-/* Clip de video: reproductor nativo, portada liviana y enlace al video completo. */
-.article-clip {
+/* Video de YouTube o Facebook: portada liviana; el reproductor de la red se carga al tocar «reproducir». */
+.article-video {
   margin: 1.6em 0;
 }
 
 @media (min-width: 860px) {
-  .article-clip {
+  .article-video {
     width: min(760px, calc(100vw - 2 * var(--gutter)));
   }
 }
 
-.article-clip-frame {
+.article-video-frame {
   position: relative;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 2px;
   background: var(--board);
 }
 
-.article-clip-frame video {
-  display: block;
-  width: 100%;
-  max-height: 80vh;
-  aspect-ratio: 16 / 9;
-  background: var(--board);
-  object-fit: contain;
+.article-video--vertical .article-video-frame {
+  aspect-ratio: 9 / 16;
+  max-width: 360px;
+  margin-inline: auto;
 }
 
-.article-clip-end {
+.article-video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.article-video-facade {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--board);
+  color: #fff;
+  cursor: pointer;
+}
+
+.article-video-facade img {
+  object-fit: cover;
+  transition: transform 600ms var(--ease-out), opacity 200ms ease;
+}
+
+.article-video-facade:hover img {
+  transform: scale(1.02);
+  opacity: 0.92;
+}
+
+.article-video-placeholder {
   position: absolute;
   inset: 0;
   display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: var(--s-3);
-  padding: var(--s-6);
-  background: rgb(21 23 26 / 0.88);
+  place-items: end start;
+  padding: var(--s-5);
+  background: var(--board);
   color: #fff;
-  text-align: center;
   font-family: var(--font-sans);
+  font-variation-settings: var(--condensed);
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
-.article-clip-end p {
-  max-width: 34ch;
-  font-size: 1.0625rem;
-  font-weight: 600;
-}
-
-.article-clip-end .article-clip-replay {
+.article-video-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  padding-left: 4px;
+  border: 2px solid rgb(255 255 255 / 0.9);
+  border-radius: 50%;
+  background: rgb(21 23 26 / 0.82);
   color: #fff;
+  transform: translate(-50%, -50%);
+  transition:
+    background-color 160ms ease,
+    transform 200ms var(--ease-out);
 }
 
-.article-clip-end .article-clip-replay:hover {
-  background: rgb(255 255 255 / 0.12);
+.article-video-facade:hover .article-video-play,
+.article-video-facade:focus-visible .article-video-play {
+  background: var(--green);
+  transform: translate(-50%, -50%) scale(1.06);
 }
 
-.article-clip figcaption {
+.article-video-facade:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: -3px;
+}
+
+.article-video-provider {
+  position: absolute;
+  left: var(--s-3);
+  top: var(--s-3);
+  padding: 2px 8px;
+  border-radius: var(--radius-tile);
+  background: rgb(21 23 26 / 0.82);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.article-video figcaption {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -1975,22 +2033,11 @@ a.story-label-section:hover {
   line-height: 1.45;
 }
 
-.article-clip-badge {
-  padding: 1px 6px;
-  border-radius: var(--radius-tile);
-  background: var(--tile-bg);
-  color: var(--tile-ink);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.article-clip-caption {
+.article-video-caption {
   color: var(--ink-2);
 }
 
-.article-clip-link {
+.article-video-link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -2001,8 +2048,13 @@ a.story-label-section:hover {
   text-underline-offset: 3px;
 }
 
-.article-clip-link:hover {
+.article-video-link:hover {
   color: var(--green-strong);
+}
+
+.article-video-fallback a {
+  color: var(--green);
+  font-weight: 700;
 }
 
 .article-inline-figure figcaption {
@@ -3930,13 +3982,30 @@ a.story-label-section:hover {
   background: var(--wash-2);
 }
 
+.body-video-form {
+  padding: var(--s-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-panel);
+  background: var(--wash);
+}
+
+.body-video-row {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.body-video-row input {
+  flex: 1;
+  min-width: 0;
+}
+
 .body-images-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-2);
 }
 
-.body-image--clip {
+.body-image--video {
   border-color: var(--field-border);
 }
 
