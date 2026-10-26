@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BodyImages } from "@/components/body-images";
+import { BodyImages, clipsMissingLink } from "@/components/body-images";
 import { IconImage } from "@/components/icons";
 import { parseBlock, splitParagraphs } from "@/lib/article-body";
 import { uploadImage } from "@/lib/upload-image";
@@ -112,6 +112,19 @@ export default function NuevaNoticiaPage() {
     }
 
     setTitleError(false);
+
+    const missing = clipsMissingLink(form.content);
+    if (missing > 0) {
+      setMessageTone("error");
+      setMessage(
+        missing === 1
+          ? "Falta el enlace al video completo en un clip del cuerpo."
+          : `Faltan los enlaces al video completo en ${missing} clips del cuerpo.`,
+      );
+      document.querySelector<HTMLInputElement>('[id^="body-full-"][aria-invalid="true"]')?.focus();
+      return;
+    }
+
     setSaving(true);
     setMessage("");
 
@@ -246,7 +259,8 @@ export default function NuevaNoticiaPage() {
             aria-describedby="news-content-hint"
           />
           <p id="news-content-hint" className="form-hint">
-            Las imágenes del cuerpo aparecen en el texto como <code>![pie de foto](dirección)</code>. Puedes editarlas abajo.
+            Las imágenes aparecen en el texto como <code>![pie](dirección)</code> y los clips como{" "}
+            <code>!video[pie](dirección …)</code>. Puedes editarlos abajo.
           </p>
         </div>
 

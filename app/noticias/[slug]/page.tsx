@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CommentForm } from "@/components/comment-form";
 import { PublicShell } from "@/components/public-shell";
 import { StoryRow } from "@/components/story";
+import { ArticleClip } from "@/components/article-clip";
 import { SafeImage } from "@/components/story-image";
 import { parseBlock, splitParagraphs } from "@/lib/article-body";
 import { IconArrowRight } from "@/components/icons";
@@ -138,7 +139,15 @@ export default async function NoticiaDetallePage({ params }: Props) {
         <div className="article-body-wrap wrap">
           <div className="article-body">
             {body.map((block, index) =>
-              block.type === "image" ? (
+              block.type === "video" ? (
+                <ArticleClip
+                  key={`${article.slug}-${index}`}
+                  src={block.src}
+                  poster={block.poster}
+                  full={block.full}
+                  caption={block.caption}
+                />
+              ) : block.type === "image" ? (
                 <figure key={`${article.slug}-${index}`} className="article-inline-figure">
                   <SafeImage
                     src={block.src}

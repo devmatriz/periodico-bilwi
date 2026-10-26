@@ -757,6 +757,11 @@ button {
   color: var(--danger-ink);
 }
 
+.notice--info {
+  background: var(--info-bg);
+  color: var(--info-ink);
+}
+
 /* ---------- Cabecera ---------- */
 
 .masthead {
@@ -1900,6 +1905,104 @@ a.story-label-section:hover {
 
 .article-inline-figure .image-fallback {
   aspect-ratio: 3 / 2;
+}
+
+/* Clip de video: reproductor nativo, portada liviana y enlace al video completo. */
+.article-clip {
+  margin: 1.6em 0;
+}
+
+@media (min-width: 860px) {
+  .article-clip {
+    width: min(760px, calc(100vw - 2 * var(--gutter)));
+  }
+}
+
+.article-clip-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--board);
+}
+
+.article-clip-frame video {
+  display: block;
+  width: 100%;
+  max-height: 80vh;
+  aspect-ratio: 16 / 9;
+  background: var(--board);
+  object-fit: contain;
+}
+
+.article-clip-end {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--s-3);
+  padding: var(--s-6);
+  background: rgb(21 23 26 / 0.88);
+  color: #fff;
+  text-align: center;
+  font-family: var(--font-sans);
+}
+
+.article-clip-end p {
+  max-width: 34ch;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.article-clip-end .article-clip-replay {
+  color: #fff;
+}
+
+.article-clip-end .article-clip-replay:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+
+.article-clip figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px var(--s-3);
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.article-clip-badge {
+  padding: 1px 6px;
+  border-radius: var(--radius-tile);
+  background: var(--tile-bg);
+  color: var(--tile-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.article-clip-caption {
+  color: var(--ink-2);
+}
+
+.article-clip-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  color: var(--green);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.article-clip-link:hover {
+  color: var(--green-strong);
 }
 
 .article-inline-figure figcaption {
@@ -3825,6 +3928,31 @@ a.story-label-section:hover {
   overflow: hidden;
   border-radius: 3px;
   background: var(--wash-2);
+}
+
+.body-images-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.body-image--clip {
+  border-color: var(--field-border);
+}
+
+.body-image-kind {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 5px;
+  border-radius: var(--radius-tile);
+  background: rgb(21 23 26 / 0.85);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .body-image-thumb img {

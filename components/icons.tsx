@@ -161,6 +161,13 @@ export const IconCheck = (p: IconProps) => (
   </Svg>
 );
 
+export const IconVideo = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="2" y="6" width="14" height="12" rx="2" />
+    <path d="m22 8-6 4 6 4Z" />
+  </Svg>
+);
+
 export const IconMoon = (p: IconProps) => (
   <Svg {...p}>
     <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
