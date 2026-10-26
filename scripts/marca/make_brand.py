@@ -71,17 +71,19 @@ RADIUS = 7
 
 
 def isotipo_parts():
-    size = 60 / CAP  # B de 60 unidades de alto
+    size = 58 / CAP  # B de 58 unidades de alto
     xmin, ymin, xmax, ymax, adv = glyph_bounds(DISPLAY, "B", size)
     width = xmax - xmin
     x = (TILE - width) / 2 - xmin
-    top = 12
+    top = 10
     baseline = top + ymax
     b, _ = text_path(DISPLAY, "B", size, x=x, baseline=baseline)
-    # La línea del horizonte cruza la ficha de lado a lado: la B se apoya sobre ella.
-    bar_y = baseline + 6
-    bar = f"M0 {bar_y:.2f}H{TILE}V{bar_y + 5:.2f}H0Z"
-    return b, bar
+    # «La Ola»: el horizonte cruza la ficha de lado a lado como una sola ola suave.
+    wave = (
+        "M0 80C14 72 30 72 44 78S74 86 100 76"
+        "V82C74 92 58 84 44 84S14 78 0 86Z"
+    )
+    return b, wave
 
 
 ISO_B, ISO_BAR = isotipo_parts()

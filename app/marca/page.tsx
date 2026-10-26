@@ -72,7 +72,7 @@ const colors = [
 const misuse = [
   "Cambiar los colores fuera de las versiones de esta página.",
   "Estirar, inclinar o girar el logo.",
-  "Quitar la línea del horizonte o separar la B de la ficha.",
+  "Quitar la ola, cambiar su forma o separar la B de la ficha.",
   "Escribir el nombre con otra letra en lugar de usar el archivo.",
   "Poner la versión positiva sobre fondos oscuros o fotos recargadas.",
   "Agregar sombras, contornos o efectos.",
@@ -87,7 +87,7 @@ export default function MarcaPage() {
             <h1 id="marca-title" className="section-board-name">
               Identidad visual
             </h1>
-            <p className="section-board-title">La ficha del tablero</p>
+            <p className="section-board-title">La ficha y la ola</p>
             <p className="section-board-desc">
               Logotipo, isotipo, versiones y colores de Bilwi Noticias, con los archivos listos para usar.
             </p>
@@ -108,8 +108,9 @@ export default function MarcaPage() {
                 costa: un cuadro oscuro con la <strong>B</strong> de Bilwi calada.
               </p>
               <p>
-                La línea que cruza la ficha de lado a lado cumple dos papeles. Es la regla gruesa que abre cada sección del
-                periódico y es el horizonte del Caribe frente a Puerto Cabezas, sobre el que se apoya la B.
+                Bajo la B, una sola ola suave cruza la ficha de lado a lado: es el horizonte del Caribe frente a Puerto
+                Cabezas. Es una línea, no un dibujo del mar, así que el símbolo sigue siendo sobrio y legible incluso del
+                tamaño de un ícono.
               </p>
               <p>
                 El nombre usa Archivo condensada en su peso más fuerte, la misma letra de los titulares de sección del
@@ -126,7 +127,7 @@ export default function MarcaPage() {
                   <span className="tile tile--sm">2</span> La B calada de Bilwi
                 </li>
                 <li>
-                  <span className="tile tile--sm">3</span> La línea: regla de sección y horizonte
+                  <span className="tile tile--sm">3</span> La ola: el horizonte del Caribe
                 </li>
               </ul>
             </div>
