@@ -126,7 +126,7 @@ export async function getEditorialCategorySettings() {
   const stored = await readJsonFile<EditorialCategorySetting[]>(categoryFile, cloneCategories());
   const map = new Map(stored.map((item) => [item.slug, item]));
 
-  return defaultCategories.map((item) => {
+  const categories = defaultCategories.map((item) => {
     const current = map.get(item.slug);
     if (!current) {
       return item;
@@ -190,7 +190,7 @@ export async function getEditorialUsers() {
   const stored = await readJsonFile<EditorialUserSetting[]>(userFile, cloneUsers());
   const map = new Map(stored.map((item) => [item.email.toLowerCase(), item]));
 
-  return defaultUsers.map((item) => {
+  const users = defaultUsers.map((item) => {
     const current = map.get(item.email.toLowerCase());
     if (!current) {
       return item;

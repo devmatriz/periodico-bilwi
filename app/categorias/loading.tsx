@@ -1,44 +1,12 @@
 export default function Loading() {
   return (
-    <div className="loading-screen">
-      <div className="loading-shell">
-        <div className="loading-panel">
-          <div className="loading-line" style={{ width: 120 }} />
-          <div className="loading-line title" style={{ width: "48%" }} />
-          <div className="loading-line subtitle" />
-          <div className="loading-line subtitle" style={{ width: "62%" }} />
-        </div>
-
-        <div className="loading-card-grid" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
-          <div className="loading-card">
-            <div className="loading-line" style={{ width: 100 }} />
-            <div className="loading-box" style={{ height: 180 }} />
-          </div>
-          <div className="loading-card">
-            <div className="loading-line" style={{ width: 100 }} />
-            <div className="loading-box" style={{ height: 180 }} />
-          </div>
-          <div className="loading-card">
-            <div className="loading-line" style={{ width: 100 }} />
-            <div className="loading-box" style={{ height: 180 }} />
-          </div>
-          <div className="loading-card">
-            <div className="loading-line" style={{ width: 100 }} />
-            <div className="loading-box" style={{ height: 180 }} />
-          </div>
-        </div>
-
-        <div className="loading-hero">
-          <div className="loading-panel">
-            <div className="loading-line" style={{ width: 120 }} />
-            <div className="loading-box" style={{ height: 240 }} />
-          </div>
-          <aside className="loading-hero-side">
-            <div className="loading-box" />
-            <div className="loading-box" />
-            <div className="loading-box" />
-          </aside>
-        </div>
+    <div className="skeleton-page wrap page" role="status" aria-label="Cargando secciones">
+      <span className="sk sk--line" style={{ width: "30%", height: 40 }} />
+      <span className="sk sk--line" style={{ width: "45%" }} />
+      <div className="skeleton-rows">
+        {[0, 1, 2, 3, 4, 5].map((item) => (
+          <span key={item} className="sk sk--block" style={{ height: 96 }} />
+        ))}
       </div>
     </div>
   );

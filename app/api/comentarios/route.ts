@@ -12,7 +12,8 @@ export async function GET(request: Request) {
   }
 
   const comments = await getCommentsForSlug(slug, { status: "approved" });
-  return NextResponse.json({ items: comments });
+  // El correo es privado: solo lo ve la moderación.
+  return NextResponse.json({ items: comments.map(({ email: _email, ...comment }) => comment) });
 }
 
 export async function POST(request: Request) {

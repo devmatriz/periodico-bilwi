@@ -1,0 +1,313 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-25T00:00:00Z",
+  "title": "Design System: Bilwi Noticias",
+  "extensions": {
+    "colorMeta": {
+      "board": {
+        "role": "neutral",
+        "displayName": "Notice-Board Pitch",
+        "canonical": "#15171a",
+        "tonalRamp": [
+          "#0e0c0b",
+          "#15171a",
+          "#33302c",
+          "#4d4843",
+          "#6b645c",
+          "#958d84",
+          "#c9c3bb",
+          "#eae7e0"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#4a443e",
+          "#5b6168",
+          "#868b91",
+          "#c9c3bb",
+          "#e3e0d9",
+          "#eae7e0",
+          "#f6f5f3",
+          "#ffffff"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Press Ink",
+        "canonical": "#15171a",
+        "tonalRamp": [
+          "#15171a",
+          "#2a2622",
+          "#4a443e",
+          "#5b6168",
+          "#868b91",
+          "#b5aea6",
+          "#e3e0d9",
+          "#f6f5f3"
+        ]
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Danger",
+        "canonical": "#b42318",
+        "tonalRamp": [
+          "#4a0d08",
+          "#8f1d14",
+          "#b42318",
+          "#d1483d",
+          "#e57d74",
+          "#f1b2ac",
+          "#f8d6d2",
+          "#fdecea"
+        ]
+      },
+      "rubric-teal": {
+        "role": "primary",
+        "displayName": "Rubric Teal",
+        "canonical": "#0a5f63",
+        "tonalRamp": [
+          "#04292b",
+          "#084a4d",
+          "#0a5f63",
+          "#2f7e81",
+          "#5ca3a5",
+          "#93c6c7",
+          "#c9e3e3",
+          "#e1efee"
+        ]
+      },
+      "dark-rubric-teal": {
+        "role": "primary",
+        "displayName": "Rubric Teal (dark mode)",
+        "canonical": "#5cc4be",
+        "tonalRamp": [
+          "#0b1f1e",
+          "#173634",
+          "#2c6e6a",
+          "#43a19c",
+          "#5cc4be",
+          "#7dd3ce",
+          "#a9e3df",
+          "#d6f2f0"
+        ]
+      },
+      "dark-paper": {
+        "role": "neutral",
+        "displayName": "Night Paper",
+        "canonical": "#121416",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#121416",
+          "#1c1f22",
+          "#24282b",
+          "#2c3136",
+          "#6b737b",
+          "#9aa1a8",
+          "#ecedee"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "wayfinding": {
+        "displayName": "Wayfinding",
+        "purpose": "Page titles, section names, board title, admin titles. Condensed uppercase."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Article titles and the board lead."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Story headlines in lists and cards."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Article text on a 66ch measure."
+      },
+      "ui": {
+        "displayName": "UI",
+        "purpose": "Buttons, navigation, form labels."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Story label: sección · fecha · autor."
+      },
+      "tile": {
+        "displayName": "Tile numerals",
+        "purpose": "Rank and counts inside tiles."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All state transitions and the tile slide-in."
+      },
+      {
+        "name": "tile-in",
+        "value": "620ms, translateY(-14px) to 0, stagger 80ms per slot",
+        "purpose": "Signature: board tiles enter their slots once on load; off under reduced motion."
+      },
+      {
+        "name": "state",
+        "value": "160ms ease",
+        "purpose": "Hover colour and border changes."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "720px"
+      },
+      {
+        "name": "search",
+        "value": "760px"
+      },
+      {
+        "name": "board-split",
+        "value": "980px"
+      },
+      {
+        "name": "admin-sidebar",
+        "value": "1024px"
+      },
+      {
+        "name": "front-rail",
+        "value": "1080px"
+      },
+      {
+        "name": "gutter-lg",
+        "value": "1200px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action: publish, search, send.",
+      "html": "<button class=\"ds-btn-primary\">Publicar</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; min-height:44px; padding:0 18px; border:0; border-radius:4px; background:#0a5f63; color:#fff; font:600 15px/1.2 Archivo, system-ui, sans-serif; cursor:pointer; transition:background-color 160ms ease; } .ds-btn-primary:hover { background:#084a4d; } .ds-btn-primary:focus-visible { outline:2px solid #0a5f63; outline-offset:2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Second action; inverts to ink on hover.",
+      "html": "<button class=\"ds-btn-secondary\">Guardar borrador</button>",
+      "css": ".ds-btn-secondary { display:inline-flex; align-items:center; min-height:44px; padding:0 18px; border:1px solid #15171a; border-radius:4px; background:#fff; color:#15171a; font:600 15px/1.2 Archivo, system-ui, sans-serif; cursor:pointer; transition:background-color 160ms ease, color 160ms ease; } .ds-btn-secondary:hover { background:#15171a; color:#fff; } .ds-btn-secondary:focus-visible { outline:2px solid #0a5f63; outline-offset:2px; }"
+    },
+    {
+      "name": "Tile",
+      "kind": "custom",
+      "refersTo": "tile-on-board",
+      "description": "Signature numbered tile on the board: rank or count.",
+      "html": "<div class=\"ds-board\"><span class=\"ds-tile\">01</span><span class=\"ds-tile\">02</span></div>",
+      "css": ".ds-board { display:flex; gap:8px; padding:16px; background:#15171a; } .ds-tile { display:inline-grid; place-items:center; min-width:44px; height:52px; padding:0 5px; background:#fff; color:#15171a; border-radius:3px; font:800 32px/1 Archivo, sans-serif; font-variation-settings:'wdth' 68; font-variant-numeric:tabular-nums; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled field with green focus halo.",
+      "html": "<label class=\"ds-field\"><span>Correo electrónico</span><input placeholder=\"tu@correo.com\"></label>",
+      "css": ".ds-field { display:grid; gap:6px; font:600 14px Archivo, sans-serif; color:#15171a; } .ds-field input { min-height:46px; padding:10px 12px; border:1px solid #868b91; border-radius:4px; font:400 16px Archivo, sans-serif; color:#15171a; transition:border-color 160ms ease, box-shadow 160ms ease; } .ds-field input:hover { border-color:#15171a; } .ds-field input:focus-visible { outline:none; border-color:#0a5f63; box-shadow:0 0 0 3px #e1efee; }"
+    },
+    {
+      "name": "Section Nav",
+      "kind": "nav",
+      "description": "Masthead section row; active item green with 3px underline.",
+      "html": "<nav class=\"ds-nav\"><a aria-current=\"page\" href=\"#\">Portada</a><a href=\"#\">Locales</a><a href=\"#\">Cultura</a></nav>",
+      "css": ".ds-nav { display:flex; gap:4px; border-top:1px solid #15171a; border-bottom:1px solid #e3e0d9; } .ds-nav a { position:relative; display:flex; align-items:center; min-height:46px; padding:0 10px; color:#15171a; font:600 15px Archivo, sans-serif; font-variation-settings:'wdth' 85; text-decoration:none; } .ds-nav a::after { content:''; position:absolute; left:10px; right:10px; bottom:-1px; height:3px; background:#15171a; transform:scaleX(0); transform-origin:left; transition:transform 240ms cubic-bezier(0.16,1,0.3,1); } .ds-nav a:hover::after { transform:scaleX(1); } .ds-nav a[aria-current=page] { color:#0a5f63; } .ds-nav a[aria-current=page]::after { background:#0a5f63; transform:scaleX(1); }"
+    },
+    {
+      "name": "Story Row",
+      "kind": "card",
+      "description": "List story: thumbnail, serif headline, label below.",
+      "html": "<article class=\"ds-story\"><div class=\"ds-thumb\"></div><div><h3>Feria de salud</h3><p class=\"ds-label\"><b>Locales</b> · 17 jun</p></div></article>",
+      "css": ".ds-story { display:grid; grid-template-columns:112px 1fr; gap:16px; padding:16px 0; border-top:1px solid #e3e0d9; } .ds-thumb { aspect-ratio:4/3; background:#eae7e0; border-radius:2px; } .ds-story h3 { margin:0; font:600 19px/1.25 'Source Serif 4', Georgia, serif; color:#15171a; } .ds-label { margin:8px 0 0; font:400 13px Archivo, sans-serif; color:#5b6168; } .ds-label b { color:#0a5f63; }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "description": "Publication or moderation state.",
+      "html": "<span class=\"ds-status\"><i></i>Publicada</span>",
+      "css": ".ds-status { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:999px; background:#e1efee; color:#084a4d; font:600 13px Archivo, sans-serif; } .ds-status i { width:7px; height:7px; border-radius:50%; background:currentColor; }"
+    },
+    {
+      "name": "Theme Toggle",
+      "kind": "button",
+      "description": "Moon in light mode, sun in dark mode; site-wide saved preference.",
+      "html": "<button class=\"ds-theme\" aria-label=\"Activar modo oscuro\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z\"/></svg></button>",
+      "css": ".ds-theme { display:inline-grid; place-items:center; width:36px; height:36px; padding:0; border:1px solid #e3e0d9; border-radius:4px; background:#fff; color:#15171a; cursor:pointer; transition:border-color 160ms ease; } .ds-theme:hover { border-color:#15171a; } .ds-theme:focus-visible { outline:2px solid #0a5f63; outline-offset:2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El Tablero",
+    "overview": "The front page is the community notice board posted at the hall door. It is a dark panel, and white numbered tiles slide into its slots to announce today's order. Everything else is plain white paper, printed in near-black ink, with one rubric teal that marks sections and links. The board is the only place the system spends colour and drama. Paper pages stay calm, so reading on a phone in bright coastal light is comfortable and fast on weak data.",
+    "keyCharacteristics": [
+      "Two-value board (#15171a + white) as the single colour event per screen.",
+      "White numbered tiles (3px corners, condensed tabular numerals) for rank and counts.",
+      "Condensed Archivo capitals for wayfinding; Source Serif 4 for everything people read.",
+      "Heavy 3px ink rules open sections; 1px hairlines separate items.",
+      "Flat: no shadows, only rules, fills and focus rings."
+    ],
+    "rules": [
+      {
+        "name": "The Two-Value Board Rule",
+        "body": "Inside the board there are exactly two values: panel and white. That rules out grey text, translucent white and teal. Hierarchy comes from size and weight.",
+        "section": "colors"
+      },
+      {
+        "name": "The Bookend Rule",
+        "body": "Colour is spent on the board at the top and the footer at the bottom, both in the board tone with only its two values. Everything between stays ink, paper and rubric teal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Read-in-Serif Rule",
+        "body": "Anything a person reads as content (headlines, summaries, body, comments) is set in Source Serif 4. Archivo is for finding your way and operating controls.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Kicker Rule",
+        "body": "No label sits above a heading. The story label goes below the headline.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Paper Rule",
+        "body": "Nothing floats. Separation comes from rules and grounds, never from shadows.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Switch Rule",
+        "body": "Theme lives on `html[data-theme]` and is set before first paint from the saved preference; components only read tokens, never theme-specific literals.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do keep the board to exactly #15171a and #ffffff.",
+      "Do express rank with tile numbers and keep the headline sizes in a list equal.",
+      "Do set reading text in Source Serif 4 at 18px or more, at most 66ch wide, on pure white paper.",
+      "Do open every section with a 3px ink rule and a condensed uppercase name.",
+      "Do show only real content, and show a clear empty state when there is none.",
+      "Do use the surface tone (#f3f1ec / #1c1f22) only as the admin work field and quiet bands under content.",
+      "Do read colours from tokens so both themes stay correct."
+    ],
+    "donts": [
+      "Don't put green, grey or translucent white on the board.",
+      "Don't add shadows, gradients, glass or coloured side stripes on cards.",
+      "Don't place a kicker or eyebrow label above a heading.",
+      "Don't set reading text on the surface tone; reading grounds are paper (#ffffff / #121416).",
+      "Don't invent read counts, popularity rankings, ads or placeholder stories."
+    ]
+  }
+}

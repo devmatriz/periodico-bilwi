@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
@@ -16,6 +17,9 @@ function slugifyFileName(value: string) {
 }
 
 export async function POST(request: Request) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
+
   const formData = await request.formData().catch(() => null);
   const file = formData?.get("file");
 

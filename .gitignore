@@ -7,3 +7,9 @@ node_modules
 .env.local
 dist
 out
+
+# Compilación de TypeScript
+tsconfig.tsbuildinfo
+
+# Capturas de revisión de diseño (se regeneran)
+.impeccable/review/

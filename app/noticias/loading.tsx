@@ -1,37 +1,20 @@
 export default function Loading() {
   return (
-    <div className="loading-screen">
-      <div className="loading-shell">
-        <div className="loading-panel">
-          <div className="loading-line" style={{ width: 120 }} />
-          <div className="loading-line title" style={{ width: "58%" }} />
-          <div className="loading-line subtitle" />
-          <div className="loading-line subtitle" style={{ width: "72%" }} />
-        </div>
-
-        <div className="loading-card">
-          <div className="loading-card-grid" style={{ gridTemplateColumns: "1.15fr 1fr 0.9fr" }}>
-            <div className="loading-panel">
-              <div className="loading-line" style={{ width: 110 }} />
-              <div className="loading-box" style={{ height: 220 }} />
-            </div>
-            <div className="loading-panel">
-              <div className="loading-line" style={{ width: 110 }} />
-              <div className="loading-box" style={{ height: 220 }} />
-            </div>
-            <div className="loading-panel">
-              <div className="loading-line" style={{ width: 110 }} />
-              <div className="loading-box" style={{ height: 220 }} />
+    <div className="skeleton-page wrap page" role="status" aria-label="Cargando noticias">
+      <span className="sk sk--line" style={{ width: "40%", height: 40 }} />
+      <span className="sk sk--line" style={{ width: "30%" }} />
+      <span className="sk sk--block" style={{ height: 76, marginTop: 24 }} />
+      <div className="skeleton-rows">
+        {[0, 1, 2, 3].map((item) => (
+          <div key={item} className="skeleton-row">
+            <span className="sk sk--thumb" />
+            <div>
+              <span className="sk sk--line" style={{ width: "90%", height: 20 }} />
+              <span className="sk sk--line" style={{ width: "70%" }} />
+              <span className="sk sk--line" style={{ width: "30%" }} />
             </div>
           </div>
-        </div>
-
-        <div className="loading-table">
-          <div className="loading-table-row" />
-          <div className="loading-table-row" />
-          <div className="loading-table-row" />
-          <div className="loading-table-row" />
-        </div>
+        ))}
       </div>
     </div>
   );

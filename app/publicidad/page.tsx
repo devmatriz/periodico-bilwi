@@ -1,15 +1,16 @@
-import { PublicShell } from "@/components/public-shell";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { SimplePage } from "@/components/simple-page";
+
+export const metadata: Metadata = { title: "Publicidad" };
 
 export default function PublicidadPage() {
   return (
-    <PublicShell compact>
-      <section className="content-page">
-        <span className="eyebrow">Publicidad</span>
-        <h1>Espacios publicitarios</h1>
-        <p className="muted">
-          Aqui puedes mostrar opciones de pauta, patrocinio y contacto comercial.
-        </p>
-      </section>
-    </PublicShell>
+    <SimplePage title="Espacios publicitarios" lede="Pauta, patrocinio y contacto comercial.">
+      <p>
+        Para anunciar en Bilwi Noticias o patrocinar una sección, escríbenos desde la página de{" "}
+        <Link href="/contacto">contacto</Link> indicando “Publicidad” en el asunto.
+      </p>
+    </SimplePage>
   );
 }

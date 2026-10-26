@@ -1,67 +1,84 @@
+import type { Metadata } from "next";
 import { PublicShell } from "@/components/public-shell";
+import { IconMail, IconMapPin, IconPhone } from "@/components/icons";
+
+export const metadata: Metadata = {
+  title: "Contacto",
+  description: "Escribe a la redacción de Bilwi Noticias: notas de prensa, sugerencias y consultas publicitarias.",
+};
+
+const email = "redaccion@bilwinoticias.com";
 
 export default function ContactoPage() {
   return (
     <PublicShell compact>
-      <section className="content-page">
-        <div className="content-heading">
-          <span className="eyebrow">Contacto</span>
-          <h1>Escribe a la redaccion</h1>
-          <p className="muted">
-            Si tienes una nota de prensa, sugerencia o consulta publicitaria, este es el lugar.
+      <div className="wrap page">
+        <header className="page-head">
+          <h1>Escribe a la redacción</h1>
+          <p className="page-lede">
+            Si tienes una nota de prensa, una sugerencia o una consulta publicitaria, este es el lugar.
           </p>
-        </div>
+        </header>
 
-        <div className="contact-grid">
-          <div className="sidebar-card">
-            <h2>Contáctanos</h2>
-            <p>Estamos aqui para escucharte y atender propuestas de la comunidad.</p>
-            <div className="sidebar-list" style={{ marginTop: 20 }}>
+        <div className="contact">
+          <ul className="contact-list">
+            <li>
+              <IconMapPin />
               <div>
-                <span className="eyebrow">Direccion</span>
+                <h2>Dirección</h2>
                 <p>Barrio El Muelle, calle principal, Puerto Cabezas, Nicaragua.</p>
               </div>
+            </li>
+            <li>
+              <IconPhone />
               <div>
-                <span className="eyebrow">Telefono</span>
-                <p>+505 2792 1234</p>
+                <h2>Teléfono</h2>
+                <p>
+                  <a href="tel:+50527921234">+505 2792 1234</a>
+                </p>
               </div>
+            </li>
+            <li>
+              <IconMail />
               <div>
-                <span className="eyebrow">Correo</span>
-                <p>redaccion@bilwinoticias.com</p>
+                <h2>Correo</h2>
+                <p>
+                  <a href={`mailto:${email}`}>{email}</a>
+                </p>
+              </div>
+            </li>
+          </ul>
+
+          <form className="panel contact-form" action={`mailto:${email}`} method="post" encType="text/plain">
+            <h2 className="panel-title">Enviar un mensaje</h2>
+            <p className="form-hint">El mensaje se abrirá en tu aplicación de correo para que lo envíes.</p>
+            <div className="form-row">
+              <div className="field">
+                <label htmlFor="contact-name">Nombre completo</label>
+                <input id="contact-name" name="nombre" type="text" autoComplete="name" required />
+              </div>
+              <div className="field">
+                <label htmlFor="contact-email">Correo electrónico</label>
+                <input id="contact-email" name="correo" type="email" autoComplete="email" required />
               </div>
             </div>
-            <div className="map-card" style={{ marginTop: 20 }} />
-          </div>
-
-          <div className="form-card">
-            <form className="stack-form">
-              <div className="form-grid">
-                <label>
-                  Nombre completo
-                  <input type="text" placeholder="Tu nombre" />
-                </label>
-                <label>
-                  Correo electronico
-                  <input type="email" placeholder="tu@correo.com" />
-                </label>
-              </div>
-              <label>
-                Asunto
-                <input type="text" placeholder="Motivo de contacto" />
-              </label>
-              <label>
-                Mensaje
-                <textarea rows={9} placeholder="Escribe tu mensaje" />
-              </label>
-              <div className="form-actions">
-                <button className="button button-primary" type="button">
-                  Enviar mensaje
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="field">
+              <label htmlFor="contact-subject">Asunto</label>
+              <input id="contact-subject" name="asunto" type="text" placeholder="Noticia, sugerencia, publicidad…" />
+            </div>
+            <div className="field">
+              <label htmlFor="contact-message">Mensaje</label>
+              <textarea id="contact-message" name="mensaje" rows={7} required />
+            </div>
+            <div className="form-foot">
+              <span />
+              <button className="button button--primary" type="submit">
+                Enviar mensaje
+              </button>
+            </div>
+          </form>
         </div>
-      </section>
+      </div>
     </PublicShell>
   );
 }

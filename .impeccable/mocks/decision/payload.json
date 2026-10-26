@@ -1,0 +1,114 @@
+{
+  "title": "Elige el mundo visual de Bilwi Noticias",
+  "question": "La tirada asignó «El Tablero». Quédate con ella, toma una alternativa o vuelve a tirar.",
+  "options": [
+    {
+      "id": "assigned",
+      "kind": "assigned",
+      "label": "El Tablero",
+      "kicker": "THE ROLL",
+      "lineage": "Tableros de avisos con números deslizables de los salones comunales y templos de la costa, y el boletín impreso a dos tintas",
+      "thesis": "La portada como el tablero de avisos de la comunidad: un panel oscuro con fichas blancas numeradas que anuncian el orden del día.",
+      "palette": ["#1d1916", "#ffffff", "#0d6b4e", "#141210", "#e9e6e1"],
+      "materials": ["panel de madera oscura", "fichas esmaltadas numeradas", "boletín blanco a dos tintas"],
+      "viewport": "Cabecera blanca con fecha; debajo, el tablero oscuro: noticia principal con foto en la ficha 01 y fichas 02 a 05 con titulares reales.",
+      "risk": "Si se vuelve literal puede sugerir afiliación religiosa; se traduce sin ningún símbolo, solo la gramática del tablero.",
+      "raised": [
+        {"from": "ikeda-datamatics", "raise": "El tablero usa solo dos valores, panel y ficha blanca, sin grises intermedios."},
+        {"from": "operate-a-cutting-bench-select-rail", "raise": "El rango se expresa por número de ficha, no inflando tamaños."},
+        {"from": "rw-botteghe-quarterly-interior", "raise": "La columna de lectura tiene medida fija (~66 caracteres); el ancho reacomoda, nunca estira."},
+        {"from": "civic-bureau-prospectus-late-modern", "raise": "Todo el color de cada pantalla se gasta en un solo objeto: el tablero."},
+        {"from": "textiles-weave-drape-fashion-sneaker-box-stacks", "raise": "Cada tarjeta lleva la misma etiqueta: sección · número · fecha."},
+        {"from": "craft-making-coptic-exposed-binding", "raise": "La estructura es el adorno: el índice de secciones muestra cuántas notas reales tiene cada una."}
+      ],
+      "html": ".impeccable/mocks/decision/assigned.html"
+    },
+    {
+      "id": "model-pick",
+      "kind": "pick",
+      "label": "Casas de tablas",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Las casas de madera pintada de Bilwi, tablas horizontales en turquesa, coral, menta y amarillo con marcos blancos",
+      "thesis": "Cada sección es una casa de un color: el periódico como una calle de Bilwi.",
+      "palette": ["#1f8a8a", "#e8705a", "#9fd3b5", "#f2c94c", "#ffffff"],
+      "materials": ["tabla traslapada", "marco blanco", "zinc"],
+      "viewport": "Franja de tablas de colores por sección sobre fondo blanco; noticia principal enmarcada como una ventana blanca.",
+      "risk": "Familiar: el “Caribe colorido” es la lectura turística obvia, y cuatro colores fuertes compiten con las fotos.",
+      "html": ".impeccable/mocks/decision/model-pick.html"
+    },
+    {
+      "id": "c-ikeda", "kind": "challenger", "catalogId": "ikeda-datamatics", "label": "Data sublime", "verdict": "declined",
+      "lineage": "Campos de barras en blanco y negro puro",
+      "thesis": "Noticias como columnas de datos que parpadean.",
+      "palette": ["#000000", "#ffffff"], "materials": ["barras", "monoespaciada"],
+      "viewport": "Muro de barras con titulares en columnas monoespaciadas.",
+      "case": "Pierde en ambos ejes: el lector de Bilwi no se reconoce y el parpadeo dificulta leer.",
+      "risk": "Ilegible en móvil y pesado para datos limitados.",
+      "kept": "Compromiso total de paleta: el tablero usa solo dos valores."
+    },
+    {
+      "id": "c-bench", "kind": "challenger", "catalogId": "operate-a-cutting-bench-select-rail", "label": "Mesa de montaje", "verdict": "declined",
+      "lineage": "Riel perforado de película",
+      "thesis": "Las notas como fotogramas en un riel.",
+      "palette": ["#ff6a1a", "#000000", "#ffffff"], "materials": ["grano de película", "cinta"],
+      "viewport": "Riel naranja con fotogramas perforados.",
+      "case": "Pierde en ambos ejes: herramienta ajena a la costa; el riel obliga a aprender la navegación.",
+      "risk": "Disfraz de herramienta.",
+      "kept": "El rango es posición/número, no tamaño."
+    },
+    {
+      "id": "c-quarterly", "kind": "challenger", "catalogId": "rw-botteghe-quarterly-interior", "label": "Revista literaria", "verdict": "declined",
+      "lineage": "Hojas crema sobre azul ultramar",
+      "thesis": "Cada nota como una hoja sobre la mesa.",
+      "palette": ["#1b2f8a", "#efe6d2", "#d2401f", "#111111"], "materials": ["papel verjurado", "luz rasante"],
+      "viewport": "Hojas crema flotando sobre azul con un numeral bermellón.",
+      "case": "Pierde en ambos ejes: referencia literaria europea, y las hojas sueltas frenan el escaneo de titulares.",
+      "risk": "Libresco y lejano.",
+      "kept": "Medida fija de la columna de lectura."
+    },
+    {
+      "id": "c-civic", "kind": "challenger", "catalogId": "civic-bureau-prospectus-late-modern", "label": "Prospecto corporativo", "verdict": "declined",
+      "lineage": "Folleto institucional con cinta de luz",
+      "thesis": "El periódico como prospecto de oficina pública.",
+      "palette": ["#f7f7fa", "#1b1547", "#6b5ce7", "#7fd8d0"], "materials": ["cinta WebGL", "blanco hueso"],
+      "viewport": "Blanco vacío con una cinta violeta.",
+      "case": "Pierde en ambos ejes: tono corporativo-gubernamental resta credibilidad periodística; WebGL pesa.",
+      "risk": "Parece propaganda institucional.",
+      "kept": "Todo el color de la pantalla en un solo objeto."
+    },
+    {
+      "id": "c-sneaker", "kind": "challenger", "catalogId": "textiles-weave-drape-fashion-sneaker-box-stacks", "label": "Muro de cajas", "verdict": "declined",
+      "lineage": "Cajas de zapatillas apiladas",
+      "thesis": "Cada nota como una caja con etiqueta.",
+      "palette": ["#c8612b", "#111111", "#f6f3ee"], "materials": ["cartón", "papel de seda"],
+      "viewport": "Pared de cajas con etiquetas.",
+      "case": "Pierde en ambos ejes: código de consumo ajeno a la noticia local.",
+      "risk": "Frívolo para noticias.",
+      "kept": "Una sola etiqueta rige cada tarjeta."
+    },
+    {
+      "id": "c-coptic", "kind": "challenger", "catalogId": "craft-making-coptic-exposed-binding", "label": "Encuadernación copta", "verdict": "declined",
+      "lineage": "Lomo cosido a la vista",
+      "thesis": "La estructura del periódico cosida a la vista.",
+      "palette": ["#b08a5a", "#e9e1d0", "#3a2a1a"], "materials": ["hilo de lino", "tapas de madera"],
+      "viewport": "Lomo de cadeneta que crece con las secciones.",
+      "case": "Pierde en ambos ejes: artesanía de libro, no de noticia diaria.",
+      "risk": "Lento y decorativo.",
+      "kept": "La estructura real es el único adorno."
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code"},
+  "canon": true,
+  "canonCard": {
+    "kind": "canon",
+    "label": "El estándar de la categoría",
+    "thesis": "Un portal de noticias convencional, ejecutado con oficio.",
+    "palette": ["#ffffff", "#111111", "#0b57d0"],
+    "materials": ["retícula limpia", "fotografía"],
+    "viewport": "Cabecera con logo y menú, foto principal grande y retícula de tarjetas.",
+    "risk": "Indistinguible de cualquier otro portal por diseño.",
+    "html": ".impeccable/mocks/decision/canon.html"
+  },
+  "steer": true
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { displayCategory } from "@/lib/sections";
 
 type LiveTickerProps = {
   items: string[];
@@ -8,6 +9,7 @@ type LiveTickerProps = {
 
 function formatStamp() {
   return new Intl.DateTimeFormat("es-NI", {
+    timeZone: "America/Managua",
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date());
@@ -15,13 +17,18 @@ function formatStamp() {
 
 export function LiveTicker({ items }: LiveTickerProps) {
   const [offset, setOffset] = useState(0);
-  const [stamp, setStamp] = useState(() => formatStamp());
-  const safeItems = items.length > 0 ? items : ["Bilwi Noticias se actualiza minuto a minuto"];
+  const [stamp, setStamp] = useState<string | null>(null);
+  const safeItems = useMemo(
+    () =>
+      (items.length > 0 ? items : ["Bilwi Noticias se actualiza minuto a minuto"]).map((item) => {
+        const [category, ...rest] = item.split(": ");
+        return rest.length > 0 ? `${displayCategory(category)}: ${rest.join(": ")}` : item;
+      }),
+    [items],
+  );
 
   useEffect(() => {
-    if (safeItems.length === 0) {
-      return;
-    }
+    setStamp(formatStamp());
 
     const rotate = window.setInterval(() => {
       setOffset((current) => (current + 1) % safeItems.length);
@@ -43,21 +50,25 @@ export function LiveTicker({ items }: LiveTickerProps) {
   }, [safeItems, offset]);
 
   return (
-    <div className="ticker-bar" role="status" aria-live="polite">
-      <span className="ticker-label">ULTIMO MINUTO</span>
-      <div className="ticker-track">
-        <div className="ticker-marquee">
-          {flowItems.map((item, index) => (
-            <span className="ticker-item" key={`${item}-${index}`}>
-              {item}
-            </span>
-          ))}
+    <div className="ticker" role="region" aria-label="Último minuto">
+      <div className="wrap ticker-inner">
+        <span className="ticker-label">Último minuto</span>
+        <div className="ticker-track">
+          <ul className="ticker-marquee">
+            {flowItems.map((item, index) => (
+              <li className="ticker-item" key={`${item}-${index}`} aria-hidden={index >= safeItems.length ? true : undefined}>
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
+        {stamp ? (
+          <span className="ticker-stamp">
+            <span className="visually-hidden">Actualizado a las </span>
+            {stamp}
+          </span>
+        ) : null}
       </div>
-      <span className="ticker-live">
-        Minuto a minuto
-        <strong>{stamp}</strong>
-      </span>
     </div>
   );
 }

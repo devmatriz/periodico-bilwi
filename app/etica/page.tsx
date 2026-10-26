@@ -1,15 +1,13 @@
-import { PublicShell } from "@/components/public-shell";
+import type { Metadata } from "next";
+import { SimplePage } from "@/components/simple-page";
+
+export const metadata: Metadata = { title: "Ética periodística" };
 
 export default function EticaPage() {
   return (
-    <PublicShell compact>
-      <section className="content-page">
-        <span className="eyebrow">Editorial</span>
-        <h1>Etica periodistica</h1>
-        <p className="muted">
-          Principios de veracidad, independencia y responsabilidad editorial.
-        </p>
-      </section>
-    </PublicShell>
+    <SimplePage
+      title="Ética periodística"
+      lede="Principios de veracidad, independencia y responsabilidad editorial."
+    />
   );
 }

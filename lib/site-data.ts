@@ -8,20 +8,16 @@ export type StoryCard = {
   slug: string;
 };
 
-export const tickerItems = [
-  "Sismos de baja intensidad registrados en la Costa Caribe",
-  "Gobierno anuncia nuevos proyectos de infraestructura en Puerto Cabezas",
-  "Bilwi se prepara para la agenda cultural de junio",
-  "Avanza la cobertura de energia solar en comunidades remotas",
-  "Festival de Mayo Ya mueve la agenda cultural en Bilwi",
-];
-
 export const publicNav = [
-  { href: "/", label: "Inicio" },
-  { href: "/noticias", label: "Noticias" },
-  { href: "/categorias", label: "Categorias" },
-  { href: "/nosotros", label: "Nosotros" },
-  { href: "/contacto", label: "Contacto" },
+  { href: "/", label: "Portada" },
+  { href: "/noticias", label: "Lo último" },
+  { href: "/locales", label: "Locales" },
+  { href: "/cultura", label: "Cultura" },
+  { href: "/sociedad", label: "Sociedad" },
+  { href: "/economia", label: "Economía" },
+  { href: "/deportes", label: "Deportes" },
+  { href: "/opinion", label: "Opinión" },
+  { href: "/categorias", label: "Secciones" },
 ];
 
 export type EditorialSection = {
@@ -178,62 +174,4 @@ export const recentStories: StoryCard[] = [
     author: "Cultura y Raiz",
     slug: "feria-gastronomica-sabores-costa",
   },
-];
-
-export const popularStories = [
-  "Aumenta demanda de transporte maritimo hacia Corn Island",
-  "Nuevas becas universitarias para estudiantes costeños",
-  "Clima: se esperan lluvias moderadas durante el fin de semana",
-];
-
-export const videoStories = [
-  {
-    title: "Reportaje: El renacer de Bilwi tras el temporal",
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    title: "Entrevista: desafios de la pesca artesanal",
-    image:
-      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    title: "Resumen: competencia de velas en la costa",
-    image:
-      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=900&q=80",
-  },
-];
-
-export const tags = ["Costa Caribe", "Cultura", "Tradiciones", "Turismo", "Pesca"];
-
-export const relatedStories = [
-  {
-    category: "Gastronomia",
-    title: "Sabores de la Costa: el rondown conquista a los turistas",
-    time: "Hace 1 dia",
-  },
-  {
-    category: "Turismo",
-    title: "Bilwi se prepara para la temporada alta con nuevas rutas",
-    time: "Hace 3 dias",
-  },
-  {
-    category: "Cultura",
-    title: "Talleres infantiles buscan preservar la lengua miskita",
-    time: "Hace 4 dias",
-  },
-];
-
-export const adminMetrics = [
-  { label: "Noticias publicadas", value: "1,284", trend: "+12%" },
-  { label: "Visitas totales", value: "42.5K", trend: "+8%" },
-  { label: "Comentarios pendientes", value: "24", trend: "Urgente" },
-  { label: "Usuarios nuevos", value: "156", trend: "+5%" },
-];
-
-export const categoryBreakdown = [
-  { name: "Locales", percent: 45, tone: "blue" },
-  { name: "Cultura", percent: 30, tone: "gold" },
-  { name: "Deportes", percent: 15, tone: "gray" },
-  { name: "Opinion", percent: 10, tone: "red" },
 ];

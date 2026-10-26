@@ -51,8 +51,8 @@ type StorageShape = {
 
 const dataDir = path.join(process.cwd(), "data");
 const dataFile = path.join(dataDir, "noticias.json");
-const fallbackImage =
-  "https://images.unsplash.com/photo-1500613722158-ccd1da7d9bc0?auto=format&fit=crop&w=1400&q=80";
+// Imagen propia (identidad del periódico) para noticias sin foto.
+const fallbackImage = "/marca/sin-imagen.jpg";
 let contentCache: NewsItem[] | null = null;
 
 function stripTrailingSlash(value: string) {

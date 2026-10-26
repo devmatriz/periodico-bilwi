@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { toggleEditorialCategory, updateEditorialCategory } from "@/lib/editorial-admin-store";
 
 export const runtime = "nodejs";
@@ -6,9 +7,7 @@ export const runtime = "nodejs";
 type RouteContext = {
   params: Promise<{
     slug: string;
-  }> | {
-    slug: string;
-  };
+  }>;
 };
 
 async function resolveParams(context: RouteContext) {
@@ -16,6 +15,9 @@ async function resolveParams(context: RouteContext) {
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
+
   const { slug } = await resolveParams(context);
   const body = await request.json().catch(() => null);
 

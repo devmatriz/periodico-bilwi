@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BodyImages } from "@/components/body-images";
+import { IconImage } from "@/components/icons";
+import { parseBlock, splitParagraphs } from "@/lib/article-body";
+import { uploadImage } from "@/lib/upload-image";
 import { editorialSections } from "@/lib/site-data";
 
 type FormState = {
@@ -40,6 +44,10 @@ export default function NuevaNoticiaPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"success" | "error">("success");
+  const [titleError, setTitleError] = useState(false);
+  const [bodyUploading, setBodyUploading] = useState(false);
+  const cursorRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!imageFile) {
@@ -95,6 +103,15 @@ export default function NuevaNoticiaPage() {
   }, [editSlug]);
 
   async function submit(status: FormState["status"]) {
+    if (!form.title.trim()) {
+      setTitleError(true);
+      setMessageTone("error");
+      setMessage("Escribe un título antes de guardar.");
+      document.getElementById("news-title")?.focus();
+      return;
+    }
+
+    setTitleError(false);
     setSaving(true);
     setMessage("");
 
@@ -103,27 +120,16 @@ export default function NuevaNoticiaPage() {
 
       if (imageFile) {
         setUploadingImage(true);
-        const uploadForm = new FormData();
-        uploadForm.append("file", imageFile);
-
-        const uploadResponse = await fetch("/api/uploads", {
-          method: "POST",
-          body: uploadForm,
-        });
-
-        if (!uploadResponse.ok) {
-          const error = await uploadResponse.json().catch(() => null);
-          throw new Error(error?.message || "No se pudo subir la imagen.");
-        }
-
-        const uploadData = await uploadResponse.json();
-        image = uploadData.url;
-        setForm((current) => ({ ...current, image: uploadData.url }));
+        image = await uploadImage(imageFile);
+        setForm((current) => ({ ...current, image }));
         setImageFile(null);
       }
 
+      // Sin resumen, el almacén toma el primer párrafo: se evita que sea una imagen.
+      const firstText = splitParagraphs(form.content).find((paragraph) => parseBlock(paragraph).type === "paragraph") ?? "";
       const payload = {
         ...form,
+        excerpt: form.excerpt.trim() || firstText,
         image,
         status,
       };
@@ -141,10 +147,12 @@ export default function NuevaNoticiaPage() {
         throw new Error(error?.message || "No se pudo guardar la noticia.");
       }
 
+      setMessageTone("success");
       setMessage(editSlug ? "Noticia actualizada correctamente." : "Noticia creada correctamente.");
       router.push("/admin/noticias");
       router.refresh();
     } catch (error) {
+      setMessageTone("error");
       setMessage(error instanceof Error ? error.message : "No se pudo guardar la noticia.");
     } finally {
       setUploadingImage(false);
@@ -152,91 +160,207 @@ export default function NuevaNoticiaPage() {
     }
   }
 
+  const preview = imagePreview || form.image;
+  const busy = saving || uploadingImage || bodyUploading;
+
   return (
-    <div className="admin-grid">
-      <section className="panel-card">
-        <div className="section-title">
-          <div>
-            <h2>{editSlug ? "Editar noticia" : "Crear noticia"}</h2>
-            <p className="muted">
-              Formulario base para titulo, slug, categoria, imagen y contenido.
+    <form
+      className="editor"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void submit("published");
+      }}
+      aria-busy={busy}
+    >
+      <div className="editor-main panel">
+        <h2 className="panel-title">{editSlug ? "Editar noticia" : "Nueva noticia"}</h2>
+
+        <div className="field">
+          <label htmlFor="news-title">Título</label>
+          <input
+            id="news-title"
+            className="input-title"
+            type="text"
+            value={form.title}
+            aria-invalid={titleError || undefined}
+            aria-describedby={titleError ? "news-title-error" : undefined}
+            onChange={(event) => {
+              setForm({ ...form, title: event.target.value });
+              if (titleError && event.target.value.trim()) setTitleError(false);
+            }}
+            placeholder="Titular de la noticia"
+          />
+          {titleError ? (
+            <p id="news-title-error" className="field-error">
+              El título es obligatorio.
             </p>
+          ) : null}
+        </div>
+
+        <div className="field">
+          <label htmlFor="news-slug">
+            Dirección web <span className="field-optional">se genera del título si la dejas vacía</span>
+          </label>
+          <div className="input-prefix">
+            <span>/noticias/</span>
+            <input
+              id="news-slug"
+              type="text"
+              value={form.slug}
+              onChange={(event) => setForm({ ...form, slug: event.target.value })}
+              placeholder="titulo-de-la-noticia"
+            />
           </div>
         </div>
 
-        <form
-          className="stack-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit("published");
-          }}
-        >
-          <div className="form-grid">
-            <label>
-              Titulo
-              <input
-                type="text"
-                value={form.title}
-                onChange={(event) => setForm({ ...form, title: event.target.value })}
-                placeholder="Titulo de la noticia"
-              />
-            </label>
-            <label>
-              Slug
-              <input
-                type="text"
-                value={form.slug}
-                onChange={(event) => setForm({ ...form, slug: event.target.value })}
-                placeholder="titulo-de-la-noticia"
-              />
-            </label>
-          </div>
+        <div className="field">
+          <label htmlFor="news-excerpt">
+            Resumen <span className="field-optional">{form.excerpt.length} caracteres · aparece bajo el titular</span>
+          </label>
+          <textarea
+            id="news-excerpt"
+            rows={3}
+            value={form.excerpt}
+            onChange={(event) => setForm({ ...form, excerpt: event.target.value })}
+            placeholder="Una o dos frases que expliquen la noticia"
+          />
+        </div>
 
-          <div className="form-grid">
-            <label>
-              Categoria
-              <select
-                value={form.category}
-                onChange={(event) => setForm({ ...form, category: event.target.value })}
-              >
-                {form.category && !categoryOptions.includes(form.category) ? (
-                  <option value={form.category}>{form.category}</option>
-                ) : null}
-                {categoryOptions.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-                <option value="Sociedad">Sociedad</option>
-                <option value="Opinion">Opinion</option>
-                <option value="Infraestructura">Infraestructura</option>
-                <option value="Medio Ambiente">Medio Ambiente</option>
-              </select>
-            </label>
-            <label>
-              Autor
-              <input
-                type="text"
-                value={form.author}
-                onChange={(event) => setForm({ ...form, author: event.target.value })}
-                placeholder="Nombre del autor"
-              />
-            </label>
-          </div>
+        <div className="field">
+          <label htmlFor="news-content">
+            Contenido <span className="field-optional">separa los párrafos con una línea en blanco</span>
+          </label>
+          <textarea
+            id="news-content"
+            className="input-body"
+            rows={18}
+            value={form.content}
+            onChange={(event) => {
+              cursorRef.current = event.target.selectionStart;
+              setForm({ ...form, content: event.target.value });
+            }}
+            onSelect={(event) => {
+              cursorRef.current = event.currentTarget.selectionStart;
+            }}
+            placeholder="Escribe aquí el artículo completo"
+            aria-describedby="news-content-hint"
+          />
+          <p id="news-content-hint" className="form-hint">
+            Las imágenes del cuerpo aparecen en el texto como <code>![pie de foto](dirección)</code>. Puedes editarlas abajo.
+          </p>
+        </div>
 
-          <label>
-            Imagen
+        <BodyImages
+          content={form.content}
+          onChange={(content) => setForm((current) => ({ ...current, content }))}
+          cursorRef={cursorRef}
+          onBusyChange={setBodyUploading}
+        />
+      </div>
+
+      <aside className="editor-side">
+        <section className="panel">
+          <h2 className="panel-title">Publicación</h2>
+          <div className="field">
+            <label htmlFor="news-status">Estado</label>
+            <select
+              id="news-status"
+              value={form.status}
+              onChange={(event) => setForm({ ...form, status: event.target.value as FormState["status"] })}
+            >
+              <option value="draft">Borrador</option>
+              <option value="published">Publicado</option>
+              <option value="scheduled">Programado</option>
+              <option value="archived">Archivado</option>
+            </select>
+          </div>
+          <label className="check">
             <input
-              type="url"
-              value={form.image}
-              onChange={(event) => setForm({ ...form, image: event.target.value })}
-              placeholder="https://..."
+              type="checkbox"
+              checked={form.featured}
+              onChange={(event) => setForm({ ...form, featured: event.target.checked })}
             />
+            <span>Mostrar en el orden del día de la portada</span>
           </label>
 
-          <label>
-            O subir imagen
+          <div aria-live="polite">
+            {message ? (
+              <p className={`notice notice--${messageTone}`} role={messageTone === "error" ? "alert" : undefined}>
+                {message}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="editor-actions">
+            <button className="button button--primary button--block" type="submit" disabled={busy}>
+              {uploadingImage || bodyUploading ? "Subiendo imagen…" : saving ? "Guardando…" : "Publicar"}
+            </button>
+            <button
+              className="button button--secondary button--block"
+              type="button"
+              onClick={() => void submit("draft")}
+              disabled={busy}
+            >
+              Guardar borrador
+            </button>
+          </div>
+        </section>
+
+        <section className="panel">
+          <h2 className="panel-title">Sección y autoría</h2>
+          <div className="field">
+            <label htmlFor="news-category">Categoría</label>
+            <select
+              id="news-category"
+              value={form.category}
+              onChange={(event) => setForm({ ...form, category: event.target.value })}
+            >
+              {form.category && !categoryOptions.includes(form.category) ? (
+                <option value={form.category}>{form.category}</option>
+              ) : null}
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+              <option value="Sociedad">Sociedad</option>
+              <option value="Opinion">Opinion</option>
+              <option value="Infraestructura">Infraestructura</option>
+              <option value="Medio Ambiente">Medio Ambiente</option>
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="news-author">Autor</label>
             <input
+              id="news-author"
+              type="text"
+              value={form.author}
+              onChange={(event) => setForm({ ...form, author: event.target.value })}
+              placeholder="Nombre del autor"
+            />
+          </div>
+        </section>
+
+        <section className="panel">
+          <h2 className="panel-title">Imagen principal</h2>
+          <div className={`image-drop${preview ? " image-drop--filled" : ""}`}>
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={preview} alt="Vista previa de la imagen principal" />
+            ) : (
+              <div className="image-drop-empty">
+                <IconImage size={28} />
+                <span>Sin imagen</span>
+              </div>
+            )}
+          </div>
+          <div className="field">
+            <label htmlFor="news-file" className="button button--secondary button--block file-button">
+              {imageFile ? "Cambiar archivo" : "Subir imagen"}
+            </label>
+            <input
+              id="news-file"
+              className="visually-hidden"
               type="file"
               accept="image/*"
               onChange={(event) => {
@@ -244,109 +368,20 @@ export default function NuevaNoticiaPage() {
                 setImageFile(file);
               }}
             />
-          </label>
-
-          {imageFile ? (
-            <p className="article-meta">Archivo seleccionado: {imageFile.name}</p>
-          ) : null}
-
-          {(imagePreview || form.image) ? (
-            <div className="panel-card" style={{ padding: 0, overflow: "hidden" }}>
-              <div
-                style={{
-                  minHeight: 240,
-                  backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.55)), url(${imagePreview || form.image})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  display: "flex",
-                  alignItems: "flex-end",
-                }}
-              >
-                <div style={{ padding: 20, color: "#fff" }}>
-                  <span className="eyebrow" style={{ color: "#fff" }}>
-                    Vista previa
-                  </span>
-                  <h3 style={{ margin: "8px 0 0" }}>{form.title || "Titulo de la noticia"}</h3>
-                  <p style={{ margin: "8px 0 0", opacity: 0.92 }}>
-                    {form.category || "Categoria"} · {form.author || "Redaccion Bilwi"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="panel-card" style={{ minHeight: 240, display: "grid", placeItems: "center" }}>
-              <p className="muted" style={{ margin: 0, textAlign: "center" }}>
-                La vista previa de la imagen aparecerá aqui cuando pegues una URL o selecciones un archivo.
-              </p>
-            </div>
-          )}
-
-          <label>
-            Resumen
-            <textarea
-              rows={3}
-              value={form.excerpt}
-              onChange={(event) => setForm({ ...form, excerpt: event.target.value })}
-              placeholder="Breve descripcion de la noticia"
-            />
-          </label>
-
-          <label>
-            Contenido
-            <textarea
-              rows={10}
-              value={form.content}
-              onChange={(event) => setForm({ ...form, content: event.target.value })}
-              placeholder="Escribe aqui el articulo completo"
-            />
-          </label>
-
-          <div className="form-grid">
-            <label>
-              Estado
-              <select
-                value={form.status}
-                onChange={(event) =>
-                  setForm({ ...form, status: event.target.value as FormState["status"] })
-                }
-              >
-                <option value="draft">Borrador</option>
-                <option value="published">Publicado</option>
-                <option value="scheduled">Programado</option>
-                <option value="archived">Archivado</option>
-              </select>
-            </label>
-            <label style={{ alignSelf: "end" }}>
-              <input
-                type="checkbox"
-                checked={form.featured}
-                onChange={(event) => setForm({ ...form, featured: event.target.checked })}
-              />
-              {" "}Marcar como destacada
-            </label>
+            {imageFile ? <p className="form-hint">Archivo: {imageFile.name}. Se sube al guardar.</p> : null}
           </div>
-
-          {message ? (
-            <p className="article-meta" style={{ color: saving ? "#6b7280" : "#0d6efd" }}>
-              {message}
-            </p>
-          ) : null}
-
-          <div className="form-actions">
-            <button
-              className="button button-secondary"
-              type="button"
-              onClick={() => void submit("draft")}
-              disabled={saving || uploadingImage}
-            >
-              {uploadingImage ? "Subiendo..." : "Guardar borrador"}
-            </button>
-            <button className="button button-primary" type="submit" disabled={saving || uploadingImage}>
-              {saving ? "Guardando..." : uploadingImage ? "Subiendo..." : "Publicar"}
-            </button>
+          <div className="field">
+            <label htmlFor="news-image">O pega una dirección de imagen</label>
+            <input
+              id="news-image"
+              type="url"
+              value={form.image}
+              onChange={(event) => setForm({ ...form, image: event.target.value })}
+              placeholder="https://..."
+            />
           </div>
-        </form>
-      </section>
-    </div>
+        </section>
+      </aside>
+    </form>
   );
 }

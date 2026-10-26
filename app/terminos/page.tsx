@@ -1,13 +1,13 @@
-import { PublicShell } from "@/components/public-shell";
+import type { Metadata } from "next";
+import { SimplePage } from "@/components/simple-page";
+
+export const metadata: Metadata = { title: "Términos de servicio" };
 
 export default function TerminosPage() {
   return (
-    <PublicShell compact>
-      <section className="content-page">
-        <span className="eyebrow">Legal</span>
-        <h1>Terminos de servicio</h1>
-        <p className="muted">Condiciones basicas de uso del sitio y del contenido editorial.</p>
-      </section>
-    </PublicShell>
+    <SimplePage
+      title="Términos de servicio"
+      lede="Condiciones básicas de uso del sitio y del contenido editorial."
+    />
   );
 }
