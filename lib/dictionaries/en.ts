@@ -76,7 +76,7 @@ export const en: Dictionary = {
     title: "All news",
     resultsFor: (q: string) => `Results for “${q}”`,
     count: (n: number, filtered: boolean) =>
-      `${plural(n, "story", "stories")}${filtered ? " match the selected filters" : " published, newest first"}.`,
+      `${plural(n, "story", "stories")}${filtered ? ` ${n === 1 ? "matches" : "match"} the selected filters` : " published, newest first"}.`,
     searchLabel: "Search",
     searchPlaceholder: "Headlines, authors or topics",
     category: "Category",

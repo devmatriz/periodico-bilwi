@@ -76,7 +76,7 @@ export const es = {
     title: "Todas las noticias",
     resultsFor: (q: string) => `Resultados para “${q}”`,
     count: (n: number, filtered: boolean) =>
-      `${plural(n, "noticia", "noticias")}${filtered ? " con los filtros elegidos" : " publicadas, de la más reciente a la más antigua"}.`,
+      `${plural(n, "noticia", "noticias")}${filtered ? " con los filtros elegidos" : ` ${n === 1 ? "publicada" : "publicadas"}, de la más reciente a la más antigua`}.`,
     searchLabel: "Buscar",
     searchPlaceholder: "Titulares, autores o temas",
     category: "Categoría",
