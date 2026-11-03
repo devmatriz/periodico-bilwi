@@ -1,14 +1,18 @@
 import Link from "next/link";
+import { Logo } from "@/components/brand";
 import { LiveTicker } from "@/components/live-ticker";
-import { publicNav } from "@/lib/site-data";
-import { getTickerItems } from "@/lib/content-store";
+import { SectionNav } from "@/components/section-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { IconSearch } from "@/components/icons";
+import { getRecentNoticias } from "@/lib/content-store";
+import { intlLocale, localePath, localeShort, localeNames, locales } from "@/lib/i18n";
+import { getCurrentPath, getI18n } from "@/lib/i18n-server";
+import { categoryName, localizeSections, localizeStories } from "@/lib/localize";
+import { formatLongDate } from "@/lib/sections";
 
-function IconSearch() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M10.5 4a6.5 6.5 0 1 0 4.43 11.26l4.4 4.4 1.42-1.42-4.4-4.4A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" />
-    </svg>
-  );
+/** Logo horizontal decorativo: el enlace que lo envuelve lleva la etiqueta accesible. */
+export function Wordmark() {
+  return <Logo title="" />;
 }
 
 export async function PublicShell({
@@ -18,97 +22,137 @@ export async function PublicShell({
   children: React.ReactNode;
   compact?: boolean;
 }) {
-  const tickerItems = compact ? [] : await getTickerItems();
+  const [{ locale, t }, current] = await Promise.all([getI18n(), getCurrentPath()]);
+  const href = (path: string) => localePath(locale, path);
+
+  const tickerItems = compact
+    ? []
+    : localizeStories(await getRecentNoticias(5), locale).map((story) => `${categoryName(story.category, locale)}: ${story.title}`);
+
+  const longDate = formatLongDate(new Date(), locale);
+  const today = longDate.charAt(0).toUpperCase() + longDate.slice(1);
+  const year = new Date().getFullYear();
+  const sections = localizeSections(locale);
+
+  const navItems = [
+    { path: "/", label: t.nav.home },
+    { path: "/noticias", label: t.nav.latest },
+    ...sections.map((section) => ({ path: section.path, label: section.label })),
+    { path: "/categorias", label: t.nav.sections },
+  ].map((item) => ({ ...item, href: href(item.path) }));
 
   return (
-    <div className="site-page">
-      <header className={compact ? "site-header compact" : "site-header"}>
-        {!compact ? (
-          <LiveTicker items={tickerItems} />
-        ) : null}
-
-        <div className="navbar">
-          <Link className="brand" href="/">
-            <span className="brand-mark" aria-hidden="true">
-              BN
+    <div className="site">
+      <header className="masthead">
+        <div className="masthead-utility wrap">
+          <p className="masthead-date">
+            <time dateTime={new Date().toISOString().slice(0, 10)}>{today}</time>
+            <span className="masthead-place">
+              <span aria-hidden="true"> · </span>
+              {t.common.place}
             </span>
-            <span>
-              <strong>Bilwi Noticias</strong>
-              <small>Costa Caribe de Nicaragua</small>
-            </span>
-          </Link>
-
-          <nav className="nav-links" aria-label="Principal">
-            {publicNav.map((item) => (
-              <Link key={item.href} href={item.href}>
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="nav-actions">
-            <form className="search-form" action="/noticias" method="get">
-              <label className="search-field" aria-label="Buscar noticias">
-                <IconSearch />
-                <input name="q" type="search" placeholder="Buscar noticias..." />
-              </label>
-            </form>
-            <Link className="nav-link" href="/login">
-              Login
-            </Link>
-            <Link className="button button-primary" href="/registro">
-              Register
-            </Link>
+          </p>
+          <div className="masthead-utility-end">
+            <nav className="utility-links" aria-label={t.nav.institutional}>
+              <Link href={href("/nosotros")}>{t.nav.about}</Link>
+              <Link href={href("/contacto")}>{t.nav.contact}</Link>
+              <Link href="/login">{t.nav.newsroom}</Link>
+            </nav>
+            <nav className="lang-switch" aria-label={t.common.language}>
+              {locales.map((code) => (
+                // Enlace normal (no Link): al cambiar de idioma se recarga la página completa.
+                <a
+                  key={code}
+                  href={localePath(code, current)}
+                  hrefLang={code}
+                  lang={code}
+                  title={localeNames[code]}
+                  aria-current={code === locale ? "true" : undefined}
+                >
+                  {localeShort[code]}
+                </a>
+              ))}
+            </nav>
+            <ThemeToggle labels={t.theme} />
           </div>
         </div>
+
+        <div className="masthead-main wrap">
+          <Link className="masthead-brand" href={href("/")} aria-label={t.common.homeAria}>
+            <Wordmark />
+          </Link>
+
+          <form className="masthead-search" action={href("/noticias")} method="get" role="search">
+            <label htmlFor="masthead-q" className="visually-hidden">
+              {t.common.searchNews}
+            </label>
+            <input id="masthead-q" name="q" type="search" placeholder={t.common.searchNews} autoComplete="off" />
+            <button type="submit" aria-label={t.common.search}>
+              <IconSearch size={18} />
+            </button>
+          </form>
+
+          <Link className="masthead-search-link" href={`${href("/noticias")}#buscar`} aria-label={t.common.searchNews}>
+            <IconSearch size={22} />
+          </Link>
+        </div>
+
+        <div className="wrap">
+          <SectionNav items={navItems} current={current} label={t.nav.sections} />
+        </div>
+
+        {!compact ? <LiveTicker items={tickerItems} labels={t.ticker} intl={intlLocale[locale]} /> : null}
       </header>
 
-      <main>{children}</main>
+      <main id="contenido">{children}</main>
 
       <footer className="site-footer">
-        <div className="footer-brand">
-          <Link className="footer-logo" href="/">
-            Bilwi Noticias
-          </Link>
-          <p>
-            El portal de noticias lider en la region autonoma de la Costa Caribe Norte.
-          </p>
-          <div className="social-row">
-            <span>f</span>
-            <span>t</span>
-            <span>ig</span>
+        <div className="wrap site-footer-grid">
+          <div className="site-footer-brand">
+            <Link href={href("/")} aria-label={t.common.homeAria}>
+              <Wordmark />
+            </Link>
+            <p>{t.footer.tagline}</p>
+            <p className="site-footer-address">{t.footer.address}</p>
           </div>
+
+          <nav aria-label={t.footer.sectionsAria}>
+            <h2>{t.footer.sectionsTitle}</h2>
+            <ul>
+              {sections.map((section) => (
+                <li key={section.href}>
+                  <Link href={section.href}>{section.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label={t.footer.paperTitle}>
+            <h2>{t.footer.paperTitle}</h2>
+            <ul>
+              <li><Link href={href("/nosotros")}>{t.footer.aboutLink}</Link></li>
+              <li><Link href={href("/contacto")}>{t.footer.contactLink}</Link></li>
+              <li><Link href={href("/publicidad")}>{t.footer.ads}</Link></li>
+              <li><Link href={href("/marca")}>{t.footer.identity}</Link></li>
+              <li><Link href={href("/mapa")}>{t.footer.sitemap}</Link></li>
+            </ul>
+          </nav>
+
+          <nav aria-label={t.footer.legal}>
+            <h2>{t.footer.legal}</h2>
+            <ul>
+              <li><Link href={href("/etica")}>{t.footer.ethics}</Link></li>
+              <li><Link href={href("/politica-privacidad")}>{t.footer.privacy}</Link></li>
+              <li><Link href={href("/terminos")}>{t.footer.terms}</Link></li>
+            </ul>
+          </nav>
         </div>
 
-        <div>
-          <h3>Categorias</h3>
-          <Link href="/locales">Noticias Locales</Link>
-          <Link href="/cultura">Cultura y Tradicion</Link>
-          <Link href="/deportes">Deportes Caribe</Link>
-          <Link href="/economia">Economia Regional</Link>
-        </div>
-
-        <div>
-          <h3>Institucional</h3>
-          <Link href="/nosotros">Sobre Nosotros</Link>
-          <Link href="/contacto">Contacto</Link>
-          <Link href="/mapa">Mapa del Sitio</Link>
-          <Link href="/publicidad">Publicidad</Link>
-        </div>
-
-        <div>
-          <h3>Legal</h3>
-          <Link href="/politica-privacidad">Politica de Privacidad</Link>
-          <Link href="/terminos">Terminos de Servicio</Link>
-          <Link href="/etica">Etica Periodistica</Link>
-          <p className="footer-small">Direccion: Puerto Cabezas, Costa Caribe Norte, Nicaragua.</p>
+        <div className="wrap site-footer-base">
+          <span>© {year} Bilwi Noticias</span>
+          <span>{t.footer.madeIn}</span>
         </div>
       </footer>
-
-      <div className="footer-bottom">
-        <span>© 2024 Bilwi Noticias. Caribbean Coast, Nicaragua.</span>
-        <span>Desarrollado con orgullo en el Caribe</span>
-      </div>
     </div>
   );
 }

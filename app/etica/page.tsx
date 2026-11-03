@@ -1,15 +1,13 @@
-import { PublicShell } from "@/components/public-shell";
+import type { Metadata } from "next";
+import { SimplePage } from "@/components/simple-page";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
 
-export default function EticaPage() {
-  return (
-    <PublicShell compact>
-      <section className="content-page">
-        <span className="eyebrow">Editorial</span>
-        <h1>Etica periodistica</h1>
-        <p className="muted">
-          Principios de veracidad, independencia y responsabilidad editorial.
-        </p>
-      </section>
-    </PublicShell>
-  );
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.simple.ethicsTitle, alternates: localizedAlternates(locale, "/etica") };
+}
+
+export default async function EticaPage() {
+  const { t } = await getI18n();
+  return <SimplePage title={t.simple.ethicsTitle} lede={t.simple.ethicsLede} />;
 }

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Source+Serif+4:opsz,wght@8..60,400..700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#fff;color:#141210;font-family:"Archivo",sans-serif}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 56px;border-bottom:1px solid #e9e6e1}
+.date{font-size:13px;color:#57514b;letter-spacing:.02em}
+.mark{font-stretch:68%;font-weight:850;font-size:44px;letter-spacing:-.01em;text-transform:uppercase;line-height:1}
+.mark span{color:#0d6b4e}
+.search{border:1px solid #d9d4cd;border-radius:6px;padding:9px 14px;width:240px;font-size:14px;color:#8a837b}
+nav{display:flex;gap:28px;padding:12px 56px;font-stretch:85%;font-weight:600;font-size:15px;border-bottom:1px solid #e9e6e1}
+nav b{color:#0d6b4e}
+.board{background:#1d1916;color:#fff;margin:0;padding:28px 56px 36px;display:grid;grid-template-columns:7fr 5fr;gap:40px}
+.strip{grid-column:1/-1;display:flex;align-items:center;gap:14px;font-stretch:75%;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.tile{display:inline-grid;place-items:center;background:#fff;color:#1d1916;font-stretch:62%;font-weight:800;border-radius:3px}
+.strip .tile{width:30px;height:34px;font-size:22px}
+.strip .lbl{opacity:1}
+.lead img{display:block;width:100%;height:330px;object-fit:cover;border-radius:2px}
+.lead .row{display:flex;gap:18px;margin-top:18px;align-items:flex-start}
+.lead .tile{width:64px;height:76px;font-size:54px;flex:none}
+.lead h1{font-family:"Source Serif 4",serif;font-weight:650;font-size:40px;line-height:1.08;letter-spacing:-.01em}
+.lead p{font-family:"Source Serif 4",serif;font-size:18px;line-height:1.45;margin-top:10px;max-width:60ch}
+.k{font-stretch:75%;font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.list{display:grid;gap:0;align-content:start}
+.item{display:grid;grid-template-columns:52px 1fr;gap:16px;padding:16px 0;border-top:1px solid #fff}
+.item:first-child{border-top:0;padding-top:0}
+.item .tile{width:52px;height:60px;font-size:40px}
+.item h2{font-family:"Source Serif 4",serif;font-weight:600;font-size:21px;line-height:1.2;margin-top:6px}
+.item .meta{font-size:13px;margin-top:6px}
+.below{padding:28px 56px;display:flex;gap:40px;align-items:baseline}
+.below .k{color:#0d6b4e}
+.below h3{font-stretch:75%;font-weight:800;font-size:26px;text-transform:uppercase}
+</style></head><body>
+<div class="top"><div class="date">Domingo, 25 de octubre de 2026 · Bilwi, Costa Caribe Norte</div><div class="mark">Bilwi <span>Noticias</span></div><div class="search">Buscar noticias…</div></div>
+<nav><b>Portada</b><span>Locales</span><span>Cultura</span><span>Sociedad</span><span>Economía</span><span>Deportes</span><span>Opinión</span><span>Contacto</span></nav>
+<section class="board">
+ <div class="strip"><span class="tile">2</span><span class="tile">5</span><span class="lbl">Orden del día · Último minuto: Tormenta eléctrica acercándose a las costas de Bilwi</span></div>
+ <article class="lead">
+  <img src="../../../public/uploads/1792973751819-66bd17ce-75fa-4c2e-aeab-f7698ad7b690-escases-de-agua.jpg" alt="">
+  <div class="row"><span class="tile">1</span><div><div class="k">Opinión · 24 de octubre</div><h1>Escasez de agua: qué es, causas, consecuencias y soluciones</h1><p>Un problema que toca cada barrio de Bilwi y que exige respuestas desde la comunidad y las instituciones.</p></div></div>
+ </article>
+ <div class="list">
+  <div class="item"><span class="tile">2</span><div><div class="k">Medio Ambiente</div><h2>Tormenta eléctrica acercándose a las costas de Bilwi</h2><div class="meta">Redacción Bilwi</div></div></div>
+  <div class="item"><span class="tile">3</span><div><div class="k">Economía</div><h2>La devaluación del córdoba frente a las demás divisas</h2><div class="meta">Redacción Bilwi</div></div></div>
+  <div class="item"><span class="tile">4</span><div><div class="k">Locales</div><h2>Feria de salud</h2><div class="meta">Redacción Bilwi</div></div></div>
+  <div class="item"><span class="tile">5</span><div><div class="k">Desarrollo Regional</div><h2>Inauguran nuevo sistema de electrificación en Waspam</h2><div class="meta">Por Redacción Bilwi</div></div></div>
+ </div>
+</section>
+<div class="below"><span class="k">Sección 01</span><h3>Locales</h3><span class="k">3 notas</span></div>
+</body></html>

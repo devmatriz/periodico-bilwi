@@ -1,70 +1,49 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { PublicShell } from "@/components/public-shell";
+import { localePath } from "@/lib/i18n";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
 
-export default function NosotrosPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.about.metaTitle, description: t.about.metaDescription, alternates: localizedAlternates(locale, "/nosotros") };
+}
+
+export default async function NosotrosPage() {
+  const { locale, t } = await getI18n();
+
   return (
     <PublicShell compact>
-      <section className="content-page">
-        <div className="split-hero">
-          <div className="split-hero__panel split-hero__panel--content">
-            <div className="split-hero__panel-content">
-            <span className="eyebrow">Nuestra historia</span>
-            <h1 style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", marginTop: 12 }}>
-              Voz del Caribe Nicaraguense
+      <section className="section-board" aria-labelledby="nosotros-title">
+        <div className="wrap section-board-inner">
+          <div>
+            <h1 id="nosotros-title" className="section-board-name">
+              {t.about.name}
             </h1>
-            <p>
-              Fundado en el corazon de Puerto Cabezas, Bilwi Noticias nacio de la necesidad
-              de contar las historias que definen nuestra identidad costeña.
-            </p>
-              <blockquote
-                style={{
-                  margin: "24px 0 0",
-                  paddingLeft: 16,
-                  borderLeft: "3px solid var(--primary)",
-                  fontStyle: "italic",
-                  color: "var(--text-muted)",
-                }}
-              >
-                Informando con integridad desde las costas de Bilwi para todo el mundo.
-              </blockquote>
-            </div>
+            <p className="section-board-title">{t.about.title}</p>
+            <p className="section-board-desc">{t.about.intro}</p>
           </div>
-
-          <div
-            className="split-hero__visual"
-            style={{
-              backgroundImage:
-                'linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.18)), url("https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1200&q=80")',
-            }}
-          />
-        </div>
-
-        <div className="about-grid">
-          <article className="editor-card editor-card--soft about-card">
-            <span className="eyebrow">Nuestra mision</span>
-            <p>
-              Proveer una plataforma informativa veraz, bilingue e intercultural que empodere
-              a las comunidades de la Costa Caribe de Nicaragua.
-            </p>
-          </article>
-          <article className="editor-card editor-card--soft about-card">
-            <span className="eyebrow">Nuestra vision</span>
-            <p>
-              Ser el referente informativo lider del Caribe, conectando nuestras raices locales
-              con una audiencia amplia mediante innovacion digital y rigor etico.
-            </p>
-          </article>
-          <article className="editor-card editor-card--soft about-card">
-            <span className="eyebrow">Compromiso</span>
-            <p>
-              Periodismo cercano, legible y util para la vida diaria de Bilwi y la Costa Caribe.
-            </p>
-          </article>
-          <article className="editor-card editor-card--soft about-card">
-            <span className="eyebrow">Equipo</span>
-            <p>Redaccion, fotografia, edicion, analisis y cobertura comunitaria.</p>
-          </article>
         </div>
       </section>
+
+      <div className="wrap page">
+        <blockquote className="pull-quote">
+          <p>{t.about.quote}</p>
+        </blockquote>
+
+        <ol className="pillars">
+          {t.about.pillars.map((pillar) => (
+            <li key={pillar.title}>
+              <h2>{pillar.title}</h2>
+              <p>{pillar.text}</p>
+            </li>
+          ))}
+        </ol>
+
+        <p className="prose">
+          {t.about.closingQuestion} <Link href={localePath(locale, "/contacto")}>{t.about.closingLink}</Link>.
+        </p>
+      </div>
     </PublicShell>
   );
 }

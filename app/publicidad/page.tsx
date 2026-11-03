@@ -1,15 +1,22 @@
-import { PublicShell } from "@/components/public-shell";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { SimplePage } from "@/components/simple-page";
+import { localePath } from "@/lib/i18n";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
 
-export default function PublicidadPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.simple.adsMetaTitle, alternates: localizedAlternates(locale, "/publicidad") };
+}
+
+export default async function PublicidadPage() {
+  const { locale, t } = await getI18n();
   return (
-    <PublicShell compact>
-      <section className="content-page">
-        <span className="eyebrow">Publicidad</span>
-        <h1>Espacios publicitarios</h1>
-        <p className="muted">
-          Aqui puedes mostrar opciones de pauta, patrocinio y contacto comercial.
-        </p>
-      </section>
-    </PublicShell>
+    <SimplePage title={t.simple.adsTitle} lede={t.simple.adsLede}>
+      <p>
+        {t.simple.adsBodyBefore} <Link href={localePath(locale, "/contacto")}>{t.simple.adsBodyLink}</Link>{" "}
+        {t.simple.adsBodyAfter}
+      </p>
+    </SimplePage>
   );
 }

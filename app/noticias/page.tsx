@@ -1,9 +1,23 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicShell } from "@/components/public-shell";
-import { relatedStories } from "@/lib/site-data";
+import { StoryRow } from "@/components/story";
+import { IconSearch, IconX } from "@/components/icons";
 import { getPublicNoticias } from "@/lib/content-store";
+import { localePath } from "@/lib/i18n";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
+import { categoryName, localizeStories } from "@/lib/localize";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return {
+    title: t.list.metaTitle,
+    description: t.list.metaDescription,
+    alternates: localizedAlternates(locale, "/noticias"),
+  };
+}
 
 type Props = {
   searchParams: Promise<{
@@ -17,7 +31,7 @@ function normalizeSearch(value: string) {
   return value
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .trim();
 }
 
@@ -30,15 +44,6 @@ function localDayKey(value: Date) {
   }).format(value);
 }
 
-function formatLocalDate(value: string) {
-  return new Intl.DateTimeFormat("es-NI", {
-    timeZone: "America/Managua",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
 function dayKeyDaysAgo(days: number) {
   const date = new Date();
   date.setDate(date.getDate() - days);
@@ -46,8 +51,9 @@ function dayKeyDaysAgo(days: number) {
 }
 
 export default async function NoticiasPage({ searchParams }: Props) {
-  const { q, categoria, periodo } = await searchParams;
-  const stories = await getPublicNoticias();
+  const [{ q, categoria, periodo }, { locale, t }, published] = await Promise.all([searchParams, getI18n(), getPublicNoticias()]);
+  const stories = localizeStories(published, locale);
+  const base = localePath(locale, "/noticias");
   const query = normalizeSearch(q || "");
   const categoryFilter = normalizeSearch(categoria || "");
   const periodFilter = periodo || "";
@@ -55,16 +61,32 @@ export default async function NoticiasPage({ searchParams }: Props) {
   const weekKey = dayKeyDaysAgo(7);
   const monthKey = dayKeyDaysAgo(30);
 
+  const periodLabels: Record<string, string> = {
+    today: t.list.today,
+    week: t.list.week,
+    month: t.list.month,
+    all: t.list.allTime,
+  };
+
+  // El valor del filtro es la categoría tal como está guardada; el texto visible va en el idioma de la página.
   const categories = Array.from(new Set(stories.map((story) => story.category))).sort((a, b) =>
-    a.localeCompare(b, "es"),
+    categoryName(a, locale).localeCompare(categoryName(b, locale), locale),
   );
 
   const filteredStories = stories.filter((story) => {
-    const searchable = [story.title, story.excerpt, story.category, story.author, story.content]
-      .join(" ")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
+    const original = published.find((item) => item.slug === story.slug);
+    // En otros idiomas se busca en la traducción y también en el texto original en español.
+    const searchable = normalizeSearch(
+      [
+        story.title,
+        story.excerpt,
+        story.category,
+        categoryName(story.category, locale),
+        story.author,
+        story.content,
+        original && original.title !== story.title ? `${original.title} ${original.excerpt} ${original.content}` : "",
+      ].join(" "),
+    );
 
     const storyDay = localDayKey(new Date(story.publishedAt || story.createdAt || story.updatedAt));
 
@@ -83,131 +105,96 @@ export default async function NoticiasPage({ searchParams }: Props) {
     return matchesQuery && matchesCategory && matchesPeriod;
   });
 
-  const activeFilters = [query, categoria, periodo].filter(Boolean).length;
+  const params = { q, categoria, periodo };
+  function withoutParam(key: string) {
+    const next = new URLSearchParams();
+    for (const [name, value] of Object.entries(params)) {
+      if (name !== key && value) next.set(name, value);
+    }
+    const queryString = next.toString();
+    return queryString ? `${base}?${queryString}` : base;
+  }
+
+  const activeFilters = [
+    q ? { key: "q", label: `“${q}”` } : null,
+    categoria ? { key: "categoria", label: categoryName(categoria, locale) } : null,
+    periodo ? { key: "periodo", label: periodLabels[periodo] ?? periodo } : null,
+  ].filter(Boolean) as Array<{ key: string; label: string }>;
+  const count = filteredStories.length;
 
   return (
     <PublicShell compact>
-      <section className="news-page">
-        <div className="content-heading">
-          <span className="eyebrow">Noticias</span>
-          <h1>{query ? `Resultados para "${q}"` : "Ultimas publicaciones"}</h1>
-          <p className="muted">
-            {query
-              ? "Explora coincidencias relacionadas con tu busqueda dentro de la cobertura local."
-              : "Un listado editorial para leer, filtrar y descubrir contenido relevante de Bilwi."}
-          </p>
-        </div>
+      <div className="wrap page">
+        <header className="page-head">
+          <h1>{q ? t.list.resultsFor(q) : t.list.title}</h1>
+          <p className="page-lede">{t.list.count(count, activeFilters.length > 0)}</p>
+        </header>
 
-        <form className="sidebar-card news-filters" action="/noticias" method="get">
-          <div className="form-grid">
-            <label>
-              Buscar
-              <input
-                name="q"
-                type="search"
-                placeholder="Titulares, autores o temas..."
-                defaultValue={q || ""}
-              />
-            </label>
-            <label>
-              Categoria
-              <select name="categoria" defaultValue={categoria || ""}>
-                <option value="">Todas</option>
-                {categories.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Periodo
-              <select name="periodo" defaultValue={periodo || ""}>
-                <option value="">Cualquier fecha</option>
-                <option value="today">Hoy</option>
-                <option value="week">Ultimos 7 dias</option>
-                <option value="month">Ultimos 30 dias</option>
-                <option value="all">Todo</option>
-              </select>
-            </label>
+        <form id="buscar" className="filter-bar" action={base} method="get" role="search">
+          <div className="field field--search">
+            <label htmlFor="filtro-q">{t.list.searchLabel}</label>
+            <div className="input-icon">
+              <IconSearch size={18} />
+              <input id="filtro-q" name="q" type="search" placeholder={t.list.searchPlaceholder} defaultValue={q || ""} />
+            </div>
           </div>
-
-          <div className="form-actions" style={{ marginTop: 18 }}>
-            <button className="button button-primary" type="submit">
-              Aplicar filtros
-            </button>
-            <Link className="nav-link" href="/noticias">
-              Limpiar
-            </Link>
-            <span className="article-meta">
-              {filteredStories.length} resultado{filteredStories.length === 1 ? "" : "s"}
-              {activeFilters > 0
-                ? ` · ${activeFilters} filtro${activeFilters === 1 ? "" : "s"} activos`
-                : ""}
-            </span>
+          <div className="field">
+            <label htmlFor="filtro-categoria">{t.list.category}</label>
+            <select id="filtro-categoria" name="categoria" defaultValue={categoria || ""}>
+              <option value="">{t.list.allCategories}</option>
+              {categories.map((item) => (
+                <option key={item} value={item}>
+                  {categoryName(item, locale)}
+                </option>
+              ))}
+            </select>
           </div>
+          <div className="field">
+            <label htmlFor="filtro-periodo">{t.list.date}</label>
+            <select id="filtro-periodo" name="periodo" defaultValue={periodo || ""}>
+              <option value="">{t.list.anyDate}</option>
+              <option value="today">{t.list.today}</option>
+              <option value="week">{t.list.week}</option>
+              <option value="month">{t.list.month}</option>
+              <option value="all">{t.list.allTime}</option>
+            </select>
+          </div>
+          <button className="button button--primary" type="submit">
+            {t.common.search}
+          </button>
         </form>
 
-        <div className="article-layout">
-          <section className="news-grid">
-            {filteredStories.length > 0 ? (
-              filteredStories.map((story) => (
-                <Link key={story.slug} href={`/noticias/${story.slug}`} className="news-card">
-                  <div
-                    className="news-card-image"
-                    style={{ backgroundImage: `url(${story.image})` }}
-                  />
-                  <div className="news-card-body">
-                    <span className="eyebrow">{story.category}</span>
-                    <h3>{story.title}</h3>
-                    <p>{story.excerpt}</p>
-                    <p className="article-meta">
-                      {formatLocalDate(story.publishedAt || story.createdAt || story.updatedAt)} ·{" "}
-                      {story.author}
-                    </p>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <article className="news-card">
-                <div className="news-card-body">
-                  <span className="eyebrow">Sin resultados</span>
-                  <h3>No encontramos coincidencias</h3>
-                  <p>Prueba con otro termino o limpia los filtros para ver toda la cobertura.</p>
-                </div>
-              </article>
-            )}
-          </section>
+        {activeFilters.length > 0 ? (
+          <div className="active-filters" aria-label={t.list.activeFilters}>
+            {activeFilters.map((filter) => (
+              <Link key={filter.key} className="chip" href={withoutParam(filter.key)}>
+                {filter.label}
+                <IconX size={14} />
+                <span className="visually-hidden">{t.list.removeFilter}</span>
+              </Link>
+            ))}
+            <Link className="text-link" href={base}>
+              {t.list.clearAll}
+            </Link>
+          </div>
+        ) : null}
 
-          <aside className="sidebar">
-            <section className="sidebar-card">
-              <h2>Relacionadas</h2>
-              <div className="sidebar-list">
-                {relatedStories.map((story) => (
-                  <article key={story.title}>
-                    <p className="eyebrow">{story.category}</p>
-                    <h3 className="sidebar-article-title">{story.title}</h3>
-                    <p className="article-meta">{story.time}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className="sidebar-card newsletter-card">
-              <span className="eyebrow" style={{ color: "#fff" }}>
-                Boletin
-              </span>
-              <h2>Suscribete para recibir lo ultimo de la Costa Caribe</h2>
-              <label className="search-field" style={{ margin: "18px 0" }}>
-                <input type="email" placeholder="Tu correo electronico" />
-              </label>
-              <button className="button" type="button">
-                Suscribirme
-              </button>
-            </section>
-          </aside>
-        </div>
-      </section>
+        {count > 0 ? (
+          <div className="results">
+            {filteredStories.map((story) => (
+              <StoryRow key={story.slug} story={story} headingLevel={2} />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <h2>{t.list.emptyTitle}</h2>
+            <p>{t.list.emptyText}</p>
+            <Link className="button button--secondary" href={base}>
+              {t.list.emptyButton}
+            </Link>
+          </div>
+        )}
+      </div>
     </PublicShell>
   );
 }

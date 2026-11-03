@@ -30,7 +30,7 @@ export function AdminLoginForm({ callbackUrl }: Props) {
     setLoading(false);
 
     if (!result || result.error) {
-      setError("Credenciales incorrectas. Revisa el usuario y la contraseña.");
+      setError("Correo o contraseña incorrectos. Revisa los datos e inténtalo de nuevo.");
       return;
     }
 
@@ -39,35 +39,42 @@ export function AdminLoginForm({ callbackUrl }: Props) {
   }
 
   return (
-    <form className="stack-form" style={{ marginTop: 20 }} onSubmit={handleSubmit}>
-      <label>
-        Correo electronico
+    <form className="stack-form" onSubmit={handleSubmit} aria-busy={loading}>
+      <div className="field">
+        <label htmlFor="login-email">Correo electrónico</label>
         <input
+          id="login-email"
           type="email"
-          placeholder="admin@bilwi.ni"
+          autoComplete="username"
+          required
           value={email}
+          aria-invalid={error ? true : undefined}
           onChange={(event) => setEmail(event.target.value)}
         />
-      </label>
-      <label>
-        Contraseña
+      </div>
+      <div className="field">
+        <label htmlFor="login-password">Contraseña</label>
         <input
+          id="login-password"
           type="password"
-          placeholder="••••••••"
+          autoComplete="current-password"
+          required
           value={password}
+          aria-invalid={error ? true : undefined}
           onChange={(event) => setPassword(event.target.value)}
         />
-      </label>
-      <div className="form-actions">
-        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input type="checkbox" />
-          Recordarme
-        </label>
-        <span className="article-meta">Cuenta de prueba: admin@bilwi.ni / Bilwi2026!</span>
       </div>
-      {error ? <p className="article-meta" style={{ color: "#d00" }}>{error}</p> : null}
-      <button className="button button-primary" type="submit" style={{ minHeight: 52 }} disabled={loading}>
-        {loading ? "Ingresando..." : "Iniciar Sesion"}
+      <label className="check">
+        <input type="checkbox" />
+        <span>Recordarme en este equipo</span>
+      </label>
+      {error ? (
+        <p className="notice notice--error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <button className="button button--primary button--block" type="submit" disabled={loading}>
+        {loading ? "Entrando…" : "Entrar al panel"}
       </button>
     </form>
   );

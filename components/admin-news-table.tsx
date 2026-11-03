@@ -2,110 +2,214 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import type { NewsItem } from "@/lib/content-store";
+import { useMemo, useState } from "react";
+import { StatusPill, statusLabels } from "@/components/admin-status";
+import { IconEye, IconPencil, IconSearch, IconTrash } from "@/components/icons";
+import { SafeImage } from "@/components/story-image";
+import { displayCategory } from "@/lib/sections";
+import { localeNamesInSpanish, localeShort, translationLocales } from "@/lib/i18n";
+import type { NewsItem, NewsStatus } from "@/lib/content-store";
+
+type Filter = "all" | NewsStatus | "featured";
 
 type Props = {
   items: NewsItem[];
+  initialFilter?: string;
 };
 
-function statusLabel(status: NewsItem["status"]) {
-  if (status === "published") return "Publicado";
-  if (status === "draft") return "Borrador";
-  if (status === "scheduled") return "Programado";
-  return "Archivado";
+const filters: Filter[] = ["all", "published", "draft", "scheduled", "archived", "featured"];
+
+function filterLabel(filter: Filter) {
+  if (filter === "all") return "Todas";
+  if (filter === "featured") return "En portada";
+  return statusLabels[filter];
 }
 
-function statusTone(status: NewsItem["status"]) {
-  if (status === "published") return "green";
-  if (status === "draft") return "gold";
-  if (status === "scheduled") return "blue";
-  return "gray";
+function matches(item: NewsItem, filter: Filter) {
+  if (filter === "all") return true;
+  if (filter === "featured") return item.featured;
+  return item.status === filter;
 }
 
-export function AdminNewsTable({ items }: Props) {
+function normalize(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("es-NI", {
+    timeZone: "America/Managua",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+export function AdminNewsTable({ items, initialFilter }: Props) {
   const router = useRouter();
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<Filter>(
+    filters.includes(initialFilter as Filter) ? (initialFilter as Filter) : "all",
+  );
 
-  async function handleDelete(slug: string) {
-    const confirmed = window.confirm("¿Seguro que quieres eliminar esta noticia?");
+  const counts = useMemo(
+    () => Object.fromEntries(filters.map((item) => [item, items.filter((post) => matches(post, item)).length])),
+    [items],
+  );
+
+  const visible = useMemo(() => {
+    const needle = normalize(query.trim());
+    return items.filter(
+      (post) =>
+        matches(post, filter) &&
+        (!needle || normalize(`${post.title} ${post.category} ${post.author}`).includes(needle)),
+    );
+  }, [items, filter, query]);
+
+  async function handleDelete(slug: string, title: string) {
+    const confirmed = window.confirm(`¿Eliminar “${title}”? Esta acción no se puede deshacer.`);
     if (!confirmed) {
       return;
     }
 
     setDeletingSlug(slug);
+    setError("");
     try {
       const response = await fetch(`/api/noticias/${slug}`, { method: "DELETE" });
       if (!response.ok) {
-        throw new Error("No se pudo eliminar la noticia.");
+        throw new Error("No se pudo eliminar la noticia. Inténtalo de nuevo.");
       }
 
       router.refresh();
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "No se pudo eliminar la noticia.");
     } finally {
       setDeletingSlug(null);
     }
   }
 
   return (
-    <div className="admin-news-board">
-      <div className="admin-news-board-top">
-        <div>
-          <span className="eyebrow">Cobertura editorial</span>
-          <h3>{items.length} noticias registradas</h3>
+    <div className="panel">
+      <div className="toolbar">
+        <div className="segmented" role="group" aria-label="Filtrar por estado">
+          {filters.map((item) => (
+            <button
+              key={item}
+              type="button"
+              aria-pressed={filter === item}
+              onClick={() => setFilter(item)}
+            >
+              {filterLabel(item)} <span className="segmented-count">{counts[item]}</span>
+            </button>
+          ))}
         </div>
-        <div className="admin-news-board-chips">
-          <span className="admin-board-chip">Publicadas</span>
-          <span className="admin-board-chip">Borradores</span>
-          <span className="admin-board-chip">Programadas</span>
+        <div className="input-icon toolbar-search">
+          <IconSearch size={18} />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar por título, sección o autor"
+            aria-label="Buscar noticias"
+          />
         </div>
       </div>
 
-      <div className="admin-news-grid">
-        {items.map((post) => (
-          <article key={post.id} className="admin-news-card">
-            <div
-              className="admin-news-card-image"
-              style={{ backgroundImage: `url(${post.image})` }}
-              aria-hidden="true"
-            />
+      {error ? (
+        <p className="notice notice--error" role="alert">
+          {error}
+        </p>
+      ) : null}
 
-            <div className="admin-news-card-body">
-              <div className="admin-news-card-top">
-                <span className={`admin-status-pill admin-status-pill--${statusTone(post.status)}`}>
-                  {statusLabel(post.status)}
-                </span>
-                {post.featured ? <span className="admin-board-chip admin-board-chip--accent">Destacada</span> : null}
-              </div>
-
-              <h4>{post.title}</h4>
-              <p>{post.excerpt || post.content.slice(0, 120)}</p>
-
-              <div className="admin-news-meta">
-                <span>{post.category}</span>
-                <span>{post.time}</span>
-              </div>
-
-              <div className="admin-news-actions">
-                <Link className="admin-news-action" href={`/noticias/${post.slug}`}>
-                  Ver
-                </Link>
-                <Link className="admin-news-action" href={`/admin/noticias/nueva?slug=${post.slug}`}>
-                  Editar
-                </Link>
-                <button
-                  className="admin-news-action admin-news-action--danger"
-                  type="button"
-                  onClick={() => void handleDelete(post.slug)}
-                  disabled={deletingSlug === post.slug}
-                >
-                  {deletingSlug === post.slug ? "Eliminando..." : "Eliminar"}
-                </button>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
+      {visible.length > 0 ? (
+        <div className="table-wrap">
+          <table className="data-table data-table--news">
+            <thead>
+              <tr>
+                <th scope="col">Noticia</th>
+                <th scope="col" className="col-status">Estado</th>
+                <th scope="col" className="col-date">Fecha</th>
+                <th scope="col" className="col-actions">
+                  <span className="visually-hidden">Acciones</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((post) => (
+                <tr key={post.id}>
+                  <td>
+                    <div className="table-story">
+                      <span className="table-thumb">
+                        <SafeImage src={post.image} label={displayCategory(post.category).slice(0, 1)} sizes="64px" />
+                      </span>
+                      <div>
+                        <Link className="table-title" href={`/admin/noticias/nueva?slug=${post.slug}`}>
+                          {post.title}
+                        </Link>
+                        <span className="table-sub">
+                          {displayCategory(post.category)} · {post.author}
+                          {post.featured ? <span className="flag">En portada</span> : null}
+                          {translationLocales
+                            .filter((locale) => post.translations?.[locale])
+                            .map((locale) => (
+                              <span key={locale} className="flag flag--lang" title={`Traducida al ${localeNamesInSpanish[locale]}`}>
+                                {localeShort[locale]}
+                              </span>
+                            ))}
+                        </span>
+                        <span className="table-status-inline">
+                          <StatusPill status={post.status} />
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="col-status">
+                    <StatusPill status={post.status} />
+                  </td>
+                  <td className="col-date">{formatDate(post.publishedAt || post.updatedAt)}</td>
+                  <td className="col-actions">
+                    <div className="row-actions">
+                      <Link className="icon-button" href={`/noticias/${post.slug}`} title="Ver en el sitio" aria-label={`Ver “${post.title}”`}>
+                        <IconEye size={18} />
+                      </Link>
+                      <Link
+                        className="icon-button"
+                        href={`/admin/noticias/nueva?slug=${post.slug}`}
+                        title="Editar"
+                        aria-label={`Editar “${post.title}”`}
+                      >
+                        <IconPencil size={18} />
+                      </Link>
+                      <button
+                        className="icon-button icon-button--danger"
+                        type="button"
+                        title="Eliminar"
+                        aria-label={`Eliminar “${post.title}”`}
+                        onClick={() => void handleDelete(post.slug, post.title)}
+                        disabled={deletingSlug === post.slug}
+                      >
+                        <IconTrash size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty-state empty-state--compact">
+          <h3>No hay noticias en esta vista</h3>
+          <p>{query ? "Ninguna noticia coincide con la búsqueda." : "Cambia el filtro o crea una noticia nueva."}</p>
+          <Link className="button button--primary" href="/admin/noticias/nueva">
+            Nueva noticia
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
-

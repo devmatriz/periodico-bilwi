@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdmin, rejectUnlessAdmin } from "@/lib/admin-guard";
 import { deleteNoticia, getNoticiaBySlug, updateNoticia } from "@/lib/content-store";
 
 export const runtime = "nodejs";
@@ -6,9 +7,7 @@ export const runtime = "nodejs";
 type RouteContext = {
   params: Promise<{
     slug: string;
-  }> | {
-    slug: string;
-  };
+  }>;
 };
 
 async function resolveParams(context: RouteContext) {
@@ -17,7 +16,7 @@ async function resolveParams(context: RouteContext) {
 
 export async function GET(_: Request, context: RouteContext) {
   const { slug } = await resolveParams(context);
-  const item = await getNoticiaBySlug(slug, { includeUnpublished: true });
+  const item = await getNoticiaBySlug(slug, { includeUnpublished: await isAdmin() });
 
   if (!item) {
     return NextResponse.json({ message: "Noticia no encontrada." }, { status: 404 });
@@ -27,6 +26,9 @@ export async function GET(_: Request, context: RouteContext) {
 }
 
 export async function PUT(request: Request, context: RouteContext) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
+
   const { slug } = await resolveParams(context);
   const body = await request.json().catch(() => null);
 
@@ -48,6 +50,9 @@ export async function PATCH(request: Request, context: RouteContext) {
 }
 
 export async function DELETE(_: Request, context: RouteContext) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
+
   const { slug } = await resolveParams(context);
   const removed = await deleteNoticia(slug);
 

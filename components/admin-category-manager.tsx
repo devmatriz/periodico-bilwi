@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { StatusPill } from "@/components/admin-status";
 import type { CategorySummary } from "@/lib/content-store";
 
 type CategoryDraft = {
@@ -105,132 +106,155 @@ export function AdminCategoryManager({ items }: { items: CategorySummary[] }) {
   }
 
   return (
-    <div className="admin-category-list">
-      {error ? <div className="admin-inline-error">{error}</div> : null}
-      {ordered.map((item) => {
-        const isEditing = editingSlug === item.slug;
+    <div className="admin-stack">
+      <p className="admin-intro">
+        Los textos de cada sección aparecen en su portada pública. Desactivar una sección la oculta del índice y de la portada.
+      </p>
+      {error ? (
+        <p className="notice notice--error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <ul className="manage-list">
+        {ordered.map((item) => {
+          const isEditing = editingSlug === item.slug;
+          const busy = busySlug === item.slug;
 
-        return (
-          <div key={item.slug} className={`admin-category-row${!item.active ? " admin-category-row--inactive" : ""}`}>
-            <div className="admin-category-row-top">
-              <div>
-                <span className="eyebrow">{item.label}</span>
-                <h3>{item.title}</h3>
-              </div>
-              <div className="admin-category-row-stack">
-                <strong>{item.count}</strong>
-                <span className={`admin-role-pill${item.active ? "" : " admin-role-pill--off"}`}>
-                  {item.active ? "Activa" : "Inactiva"}
+          return (
+            <li key={item.slug} className={`manage-item${!item.active ? " manage-item--off" : ""}`}>
+              <div className="manage-row">
+                <span className="tile tile--sm" aria-hidden="true">
+                  {String(item.count).padStart(2, "0")}
                 </span>
-              </div>
-            </div>
-
-            <p>{item.description}</p>
-
-            <div className="admin-category-chips">
-              {item.chips.map((chip) => (
-                <span key={chip} className="admin-board-chip">
-                  {chip}
-                </span>
-              ))}
-            </div>
-
-            <div className="admin-news-actions">
-              <button className="admin-news-action" type="button" onClick={() => beginEdit(item)} disabled={busySlug === item.slug}>
-                Editar
-              </button>
-              <button
-                className="admin-news-action"
-                type="button"
-                onClick={() => mutateCategory(item.slug, { active: !item.active })}
-                disabled={busySlug === item.slug}
-              >
-                {item.active ? "Desactivar" : "Activar"}
-              </button>
-            </div>
-
-            {isEditing && draft ? (
-              <div className="admin-inline-editor">
-                <div className="admin-field-grid">
-                  <label className="admin-field">
-                    <span>Etiqueta</span>
-                    <input
-                      value={draft.label}
-                      onChange={(event) => setDraft((current) => (current ? { ...current, label: event.target.value } : current))}
-                    />
-                  </label>
-                  <label className="admin-field">
-                    <span>Insignia</span>
-                    <input
-                      value={draft.badge}
-                      onChange={(event) => setDraft((current) => (current ? { ...current, badge: event.target.value } : current))}
-                    />
-                  </label>
+                <div className="manage-main">
+                  <h2 className="manage-name">
+                    {item.label}
+                    <StatusPill status={item.active ? "active" : "inactive"} label={item.active ? "Activa" : "Inactiva"} />
+                  </h2>
+                  <p className="manage-title">{item.title}</p>
+                  <p className="manage-desc">{item.description}</p>
+                  {item.chips.length > 0 ? (
+                    <ul className="tag-list" aria-label="Etiquetas">
+                      {item.chips.map((chip) => (
+                        <li key={chip}>{chip}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
-
-                <label className="admin-field">
-                  <span>Titulo</span>
-                  <input
-                    value={draft.title}
-                    onChange={(event) => setDraft((current) => (current ? { ...current, title: event.target.value } : current))}
-                  />
-                </label>
-
-                <label className="admin-field">
-                  <span>Descripcion</span>
-                  <textarea
-                    value={draft.description}
-                    onChange={(event) => setDraft((current) => (current ? { ...current, description: event.target.value } : current))}
-                  />
-                </label>
-
-                <div className="admin-field-grid">
-                  <label className="admin-field">
-                    <span>Imagen</span>
-                    <input
-                      value={draft.image}
-                      onChange={(event) => setDraft((current) => (current ? { ...current, image: event.target.value } : current))}
-                    />
-                  </label>
-                  <label className="admin-field">
-                    <span>Fondo</span>
-                    <input
-                      value={draft.background}
-                      onChange={(event) => setDraft((current) => (current ? { ...current, background: event.target.value } : current))}
-                    />
-                  </label>
-                </div>
-
-                <label className="admin-field">
-                  <span>Etiquetas</span>
-                  <input
-                    value={draft.chipsText}
-                    onChange={(event) => setDraft((current) => (current ? { ...current, chipsText: event.target.value } : current))}
-                  />
-                </label>
-
-                <label className="admin-switch-row">
-                  <input
-                    type="checkbox"
-                    checked={draft.active}
-                    onChange={(event) => setDraft((current) => (current ? { ...current, active: event.target.checked } : current))}
-                  />
-                  <span>Categoria activa en la portada publica</span>
-                </label>
-
-                <div className="admin-field-actions">
-                  <button className="button button-primary" type="button" onClick={() => saveEdit(item.slug)} disabled={busySlug === item.slug}>
-                    Guardar cambios
+                <div className="manage-actions">
+                  <button
+                    className="button button--secondary button--small"
+                    type="button"
+                    onClick={() => (isEditing ? cancelEdit() : beginEdit(item))}
+                    disabled={busy}
+                    aria-expanded={isEditing}
+                  >
+                    {isEditing ? "Cerrar" : "Editar"}
                   </button>
-                  <button className="button button-secondary" type="button" onClick={cancelEdit} disabled={busySlug === item.slug}>
-                    Cancelar
+                  <button
+                    className="button button--ghost button--small"
+                    type="button"
+                    onClick={() => mutateCategory(item.slug, { active: !item.active })}
+                    disabled={busy}
+                  >
+                    {item.active ? "Desactivar" : "Activar"}
                   </button>
                 </div>
               </div>
-            ) : null}
-          </div>
-        );
-      })}
+
+              {isEditing && draft ? (
+                <div className="inline-editor">
+                  <div className="form-row">
+                    <div className="field">
+                      <label htmlFor={`cat-label-${item.slug}`}>Nombre</label>
+                      <input
+                        id={`cat-label-${item.slug}`}
+                        value={draft.label}
+                        onChange={(event) => setDraft((current) => (current ? { ...current, label: event.target.value } : current))}
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`cat-badge-${item.slug}`}>Insignia</label>
+                      <input
+                        id={`cat-badge-${item.slug}`}
+                        value={draft.badge}
+                        onChange={(event) => setDraft((current) => (current ? { ...current, badge: event.target.value } : current))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor={`cat-title-${item.slug}`}>Título de la sección</label>
+                    <input
+                      id={`cat-title-${item.slug}`}
+                      value={draft.title}
+                      onChange={(event) => setDraft((current) => (current ? { ...current, title: event.target.value } : current))}
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor={`cat-desc-${item.slug}`}>Descripción</label>
+                    <textarea
+                      id={`cat-desc-${item.slug}`}
+                      rows={3}
+                      value={draft.description}
+                      onChange={(event) => setDraft((current) => (current ? { ...current, description: event.target.value } : current))}
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="field">
+                      <label htmlFor={`cat-image-${item.slug}`}>Imagen</label>
+                      <input
+                        id={`cat-image-${item.slug}`}
+                        value={draft.image}
+                        onChange={(event) => setDraft((current) => (current ? { ...current, image: event.target.value } : current))}
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`cat-bg-${item.slug}`}>Fondo</label>
+                      <input
+                        id={`cat-bg-${item.slug}`}
+                        value={draft.background}
+                        onChange={(event) => setDraft((current) => (current ? { ...current, background: event.target.value } : current))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor={`cat-chips-${item.slug}`}>
+                      Etiquetas <span className="field-optional">separadas por comas</span>
+                    </label>
+                    <input
+                      id={`cat-chips-${item.slug}`}
+                      value={draft.chipsText}
+                      onChange={(event) => setDraft((current) => (current ? { ...current, chipsText: event.target.value } : current))}
+                    />
+                  </div>
+
+                  <label className="check">
+                    <input
+                      type="checkbox"
+                      checked={draft.active}
+                      onChange={(event) => setDraft((current) => (current ? { ...current, active: event.target.checked } : current))}
+                    />
+                    <span>Sección activa en el sitio público</span>
+                  </label>
+
+                  <div className="inline-editor-actions">
+                    <button className="button button--primary" type="button" onClick={() => saveEdit(item.slug)} disabled={busy}>
+                      {busy ? "Guardando…" : "Guardar cambios"}
+                    </button>
+                    <button className="button button--ghost" type="button" onClick={cancelEdit} disabled={busy}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

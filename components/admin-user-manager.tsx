@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { StatusPill } from "@/components/admin-status";
 import type { EditorialUserSetting } from "@/lib/editorial-admin-store";
 
 type UserDraft = {
@@ -92,113 +93,129 @@ export function AdminUserManager({ items }: { items: EditorialUserSetting[] }) {
   }
 
   return (
-    <div className="admin-roster-grid">
-      {error ? <div className="admin-inline-error">{error}</div> : null}
-      {ordered.map((item) => {
-        const isEditing = editingEmail === item.email;
+    <div className="admin-stack">
+      <p className="admin-intro">Personas con acceso al panel editorial, su rol y el alcance de su trabajo.</p>
+      {error ? (
+        <p className="notice notice--error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <ul className="manage-list">
+        {ordered.map((item) => {
+          const isEditing = editingEmail === item.email;
+          const busy = busyEmail === item.email;
 
-        return (
-          <div key={item.email} className={`admin-roster-card${!item.active ? " admin-roster-card--inactive" : ""}`}>
-            <div className="admin-roster-card-top">
-              <div className="admin-roster-avatar avatar">{item.name.slice(0, 1)}</div>
-              <div className="admin-roster-heading">
-                <h3>{item.name}</h3>
-                <p>{item.role}</p>
-              </div>
-              <span className={`admin-role-pill${item.active ? "" : " admin-role-pill--off"}`}>
-                {item.active ? item.status : "Inactivo"}
-              </span>
-            </div>
-
-            <p className="muted" style={{ margin: 0 }}>
-              {item.scope}
-            </p>
-
-            <div className="admin-roster-meta">
-              <span>{item.email}</span>
-              <span>{item.lastSeen}</span>
-            </div>
-
-            <div className="admin-news-actions">
-              <button className="admin-news-action" type="button" onClick={() => beginEdit(item)} disabled={busyEmail === item.email}>
-                Editar
-              </button>
-              <button
-                className="admin-news-action"
-                type="button"
-                onClick={() => mutateUser(item.email, { active: !item.active })}
-                disabled={busyEmail === item.email}
-              >
-                {item.active ? "Desactivar" : "Activar"}
-              </button>
-            </div>
-
-            {isEditing && draft ? (
-              <div className="admin-inline-editor">
-                <div className="admin-field-grid">
-                  <label className="admin-field">
-                    <span>Nombre</span>
-                    <input
-                      value={draft.name}
-                      onChange={(event) => setDraft((current) => (current ? { ...current, name: event.target.value } : current))}
-                    />
-                  </label>
-                  <label className="admin-field">
-                    <span>Rol</span>
-                    <input
-                      value={draft.role}
-                      onChange={(event) => setDraft((current) => (current ? { ...current, role: event.target.value } : current))}
-                    />
-                  </label>
+          return (
+            <li key={item.email} className={`manage-item${!item.active ? " manage-item--off" : ""}`}>
+              <div className="manage-row">
+                <span className="comment-avatar comment-avatar--lg" aria-hidden="true">
+                  {item.name.slice(0, 1).toUpperCase()}
+                </span>
+                <div className="manage-main">
+                  <h2 className="manage-name">
+                    {item.name}
+                    <StatusPill status={item.active ? "active" : "inactive"} label={item.active ? item.status : "Inactivo"} />
+                  </h2>
+                  <p className="manage-title">{item.role}</p>
+                  <p className="manage-desc">{item.scope}</p>
+                  <p className="manage-meta">
+                    <span>{item.email}</span>
+                    <span>Último acceso: {item.lastSeen}</span>
+                  </p>
                 </div>
-
-                <label className="admin-field">
-                  <span>Alcance</span>
-                  <input
-                    value={draft.scope}
-                    onChange={(event) => setDraft((current) => (current ? { ...current, scope: event.target.value } : current))}
-                  />
-                </label>
-
-                <div className="admin-field-grid">
-                  <label className="admin-field">
-                    <span>Estado</span>
-                    <input
-                      value={draft.status}
-                      onChange={(event) => setDraft((current) => (current ? { ...current, status: event.target.value } : current))}
-                    />
-                  </label>
-                  <label className="admin-field">
-                    <span>Ultimo acceso</span>
-                    <input
-                      value={draft.lastSeen}
-                      onChange={(event) => setDraft((current) => (current ? { ...current, lastSeen: event.target.value } : current))}
-                    />
-                  </label>
-                </div>
-
-                <label className="admin-switch-row">
-                  <input
-                    type="checkbox"
-                    checked={draft.active}
-                    onChange={(event) => setDraft((current) => (current ? { ...current, active: event.target.checked } : current))}
-                  />
-                  <span>Usuario habilitado para acceder al panel</span>
-                </label>
-
-                <div className="admin-field-actions">
-                  <button className="button button-primary" type="button" onClick={() => saveEdit(item.email)} disabled={busyEmail === item.email}>
-                    Guardar cambios
+                <div className="manage-actions">
+                  <button
+                    className="button button--secondary button--small"
+                    type="button"
+                    onClick={() => (isEditing ? cancelEdit() : beginEdit(item))}
+                    disabled={busy}
+                    aria-expanded={isEditing}
+                  >
+                    {isEditing ? "Cerrar" : "Editar"}
                   </button>
-                  <button className="button button-secondary" type="button" onClick={cancelEdit} disabled={busyEmail === item.email}>
-                    Cancelar
+                  <button
+                    className="button button--ghost button--small"
+                    type="button"
+                    onClick={() => mutateUser(item.email, { active: !item.active })}
+                    disabled={busy}
+                  >
+                    {item.active ? "Desactivar" : "Activar"}
                   </button>
                 </div>
               </div>
-            ) : null}
-          </div>
-        );
-      })}
+
+              {isEditing && draft ? (
+                <div className="inline-editor">
+                  <div className="form-row">
+                    <div className="field">
+                      <label htmlFor={`user-name-${item.id}`}>Nombre</label>
+                      <input
+                        id={`user-name-${item.id}`}
+                        value={draft.name}
+                        onChange={(event) => setDraft((current) => (current ? { ...current, name: event.target.value } : current))}
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`user-role-${item.id}`}>Rol</label>
+                      <input
+                        id={`user-role-${item.id}`}
+                        value={draft.role}
+                        onChange={(event) => setDraft((current) => (current ? { ...current, role: event.target.value } : current))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor={`user-scope-${item.id}`}>Alcance</label>
+                    <input
+                      id={`user-scope-${item.id}`}
+                      value={draft.scope}
+                      onChange={(event) => setDraft((current) => (current ? { ...current, scope: event.target.value } : current))}
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="field">
+                      <label htmlFor={`user-status-${item.id}`}>Estado</label>
+                      <input
+                        id={`user-status-${item.id}`}
+                        value={draft.status}
+                        onChange={(event) => setDraft((current) => (current ? { ...current, status: event.target.value } : current))}
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`user-seen-${item.id}`}>Último acceso</label>
+                      <input
+                        id={`user-seen-${item.id}`}
+                        value={draft.lastSeen}
+                        onChange={(event) => setDraft((current) => (current ? { ...current, lastSeen: event.target.value } : current))}
+                      />
+                    </div>
+                  </div>
+
+                  <label className="check">
+                    <input
+                      type="checkbox"
+                      checked={draft.active}
+                      onChange={(event) => setDraft((current) => (current ? { ...current, active: event.target.checked } : current))}
+                    />
+                    <span>Usuario habilitado para acceder al panel</span>
+                  </label>
+
+                  <div className="inline-editor-actions">
+                    <button className="button button--primary" type="button" onClick={() => saveEdit(item.email)} disabled={busy}>
+                      {busy ? "Guardando…" : "Guardar cambios"}
+                    </button>
+                    <button className="button button--ghost" type="button" onClick={cancelEdit} disabled={busy}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

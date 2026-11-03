@@ -9,6 +9,8 @@ export const {
   auth,
 } = NextAuth({
   secret: AUTH_SECRET,
+  // Sitio autoalojado (next start / proxy propio): Auth.js v5 rechaza el host en producción si no se declara confiable.
+  trustHost: true,
   pages: {
     signIn: "/login",
   },
@@ -41,9 +43,9 @@ export const {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.name = token.name || session.user.name;
-        session.user.email = token.email || session.user.email;
-        session.user.role = token.role || "admin";
+        session.user.name = typeof token.name === "string" && token.name ? token.name : session.user.name;
+        session.user.email = typeof token.email === "string" && token.email ? token.email : session.user.email;
+        session.user.role = typeof token.role === "string" && token.role ? token.role : "admin";
       }
 
       return session;

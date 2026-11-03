@@ -1,13 +1,13 @@
-import { PublicShell } from "@/components/public-shell";
+import type { Metadata } from "next";
+import { SimplePage } from "@/components/simple-page";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
 
-export default function PoliticaPrivacidadPage() {
-  return (
-    <PublicShell compact>
-      <section className="content-page">
-        <span className="eyebrow">Legal</span>
-        <h1>Politica de privacidad</h1>
-        <p className="muted">Texto legal base para la operacion del sitio.</p>
-      </section>
-    </PublicShell>
-  );
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.simple.privacyTitle, alternates: localizedAlternates(locale, "/politica-privacidad") };
+}
+
+export default async function PoliticaPrivacidadPage() {
+  const { t } = await getI18n();
+  return <SimplePage title={t.simple.privacyTitle} lede={t.simple.privacyLede} />;
 }

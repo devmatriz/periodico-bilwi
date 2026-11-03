@@ -1,13 +1,13 @@
-import { PublicShell } from "@/components/public-shell";
+import type { Metadata } from "next";
+import { SimplePage } from "@/components/simple-page";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
 
-export default function TerminosPage() {
-  return (
-    <PublicShell compact>
-      <section className="content-page">
-        <span className="eyebrow">Legal</span>
-        <h1>Terminos de servicio</h1>
-        <p className="muted">Condiciones basicas de uso del sitio y del contenido editorial.</p>
-      </section>
-    </PublicShell>
-  );
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return { title: t.simple.termsTitle, alternates: localizedAlternates(locale, "/terminos") };
+}
+
+export default async function TerminosPage() {
+  const { t } = await getI18n();
+  return <SimplePage title={t.simple.termsTitle} lede={t.simple.termsLede} />;
 }

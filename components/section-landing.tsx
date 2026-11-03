@@ -1,150 +1,109 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PublicShell } from "@/components/public-shell";
+import { StoryImage, StoryLabel, StoryRow, Tile, storyLang } from "@/components/story";
+import { getCategorias, getPublicNoticias } from "@/lib/content-store";
+import { localePath } from "@/lib/i18n";
+import { getI18n, localizedAlternates } from "@/lib/i18n-server";
+import { localizeSections, localizeStories } from "@/lib/localize";
+import { storiesForSection } from "@/lib/sections";
 
-type Metric = {
-  label: string;
-  value: string;
-};
+async function getSection(slug: string) {
+  const [{ locale, t }, settings] = await Promise.all([getI18n(), getCategorias()]);
+  const sections = localizeSections(locale, settings);
+  return { locale, t, sections, section: sections.find((item) => item.slug === slug) ?? null };
+}
 
-type SectionStory = {
-  title: string;
-  excerpt: string;
-  tag: string;
-  background?: string;
-  chips: string[];
-};
-
-type SectionLandingProps = {
-  eyebrow: string;
-  title: string;
-  intro: string;
-  pills: string[];
-  summaryTitle: string;
-  summaryDescription: string;
-  metrics: Metric[];
-  featured: {
-    title: string;
-    badge: string;
-    description: string;
-    chips: string[];
-    background: string;
+/** Metadatos de una página de sección, en el idioma de la página. */
+export async function sectionMetadata(slug: string): Promise<Metadata> {
+  const { locale, section } = await getSection(slug);
+  return {
+    title: section?.label,
+    description: section?.description,
+    alternates: localizedAlternates(locale, `/${slug}`),
   };
-  stories: SectionStory[];
-  footerTitle: string;
-  footerDescription: string;
-  footerHref?: string;
-  footerLabel?: string;
-};
+}
 
-export function SectionLanding({
-  eyebrow,
-  title,
-  intro,
-  pills,
-  summaryTitle,
-  summaryDescription,
-  metrics,
-  featured,
-  stories,
-  footerTitle,
-  footerDescription,
-  footerHref = "/noticias",
-  footerLabel = "Ver noticias",
-}: SectionLandingProps) {
+export async function SectionLanding({ slug }: { slug: string }) {
+  const { locale, t, sections, section } = await getSection(slug);
+
+  if (!section || !section.active) {
+    notFound();
+  }
+
+  const stories = storiesForSection(localizeStories(await getPublicNoticias(), locale), slug) as ReturnType<typeof localizeStories>;
+  const [lead, ...rest] = stories;
+  const others = sections.filter((item) => item.slug !== slug);
+
   return (
     <PublicShell compact>
-      <section className="content-page categories-page">
-        <div className="categories-hero">
-          <div className="categories-intro">
-            <span className="eyebrow">{eyebrow}</span>
-            <h1>{title}</h1>
-            <p className="muted">{intro}</p>
-            <div className="pill-row categories-pills">
-              {pills.map((pill) => (
-                <span key={pill} className="pill">
-                  {pill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <aside className="categories-summary">
-            <span className="eyebrow">Lectura rapida</span>
-            <h2>{summaryTitle}</h2>
-            <p>{summaryDescription}</p>
-
-            <div className="categories-metrics">
-              {metrics.map((metric) => (
-                <div key={metric.label} className="category-metric">
-                  <span>{metric.label}</span>
-                  <strong>{metric.value}</strong>
-                </div>
-              ))}
-            </div>
-          </aside>
-        </div>
-
-        <div className="category-grid">
-          <article
-            className="category-card category-card--featured"
-            style={{ background: featured.background }}
-          >
-            <div className="category-card-content">
-              <div className="category-card-top">
-                <span className="eyebrow">Titular principal</span>
-                <span className="category-badge">{featured.badge}</span>
-              </div>
-              <h2>{featured.title}</h2>
-              <p>{featured.description}</p>
-              <div className="category-note">
-                {featured.chips.map((chip) => (
-                  <span key={chip} className="category-chip">
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </article>
-
-          {stories.map((story) => (
-            <article
-              key={story.title}
-              className="category-card"
-              style={{
-                background:
-                  story.background ?? "linear-gradient(135deg, rgba(12,18,28,0.98) 0%, rgba(28,35,48,0.96) 100%)",
-              }}
-            >
-              <div className="category-card-content">
-                <div className="category-card-top">
-                  <span className="eyebrow">Actualidad</span>
-                  <span className="category-badge">{story.tag}</span>
-                </div>
-                <h2>{story.title}</h2>
-                <p>{story.excerpt}</p>
-                <div className="category-note">
-                  {story.chips.map((chip) => (
-                    <span key={chip} className="category-chip">
-                      {chip}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="categories-foot">
+      <section className="section-board" aria-labelledby="section-title">
+        <div className="wrap section-board-inner">
           <div>
-            <span className="eyebrow">Mas cobertura</span>
-            <strong>{footerTitle}</strong>
-            {footerDescription ? <p className="muted">{footerDescription}</p> : null}
+            <h1 id="section-title" className="section-board-name">
+              {section.label}
+            </h1>
+            <p className="section-board-title">{section.title}</p>
+            <p className="section-board-desc">{section.description}</p>
           </div>
-          <Link className="button button-primary" href={footerHref}>
-            {footerLabel}
-          </Link>
+          <p className="section-board-count">
+            <span className="tile tile--md">{String(stories.length).padStart(2, "0")}</span>
+            <span>{t.section.published(stories.length)}</span>
+          </p>
         </div>
       </section>
+
+      <div className="wrap page">
+        {lead ? (
+          <>
+            <article className="section-lead">
+              <Link className="section-lead-media" href={lead.href} tabIndex={-1} aria-hidden="true">
+                <StoryImage story={lead} priority sizes="(min-width: 900px) 640px, 100vw" />
+              </Link>
+              <div className="section-lead-body">
+                <Tile index={0} size="lg" />
+                <h2 className="section-lead-headline" lang={storyLang(lead)}>
+                  <Link href={lead.href}>{lead.title}</Link>
+                </h2>
+                {lead.excerpt ? (
+                  <p className="story-excerpt" lang={storyLang(lead)}>
+                    {lead.excerpt}
+                  </p>
+                ) : null}
+                <StoryLabel story={lead} author />
+              </div>
+            </article>
+
+            {rest.length > 0 ? (
+              <div className="results results--grid">
+                {rest.map((story) => (
+                  <StoryRow key={story.slug} story={story} stacked />
+                ))}
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <div className="empty-state">
+            <h2>{t.section.emptyTitle(section.label)}</h2>
+            <p>{t.section.emptyText}</p>
+            <Link className="button button--secondary" href={localePath(locale, "/noticias")}>
+              {t.section.emptyButton}
+            </Link>
+          </div>
+        )}
+
+        <nav className="other-sections" aria-label={t.section.others}>
+          <h2 className="rail-title">{t.section.others}</h2>
+          <ul>
+            {others.map((item) => (
+              <li key={item.slug}>
+                <Link href={item.href}>{item.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
     </PublicShell>
   );
 }

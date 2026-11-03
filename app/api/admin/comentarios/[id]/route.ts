@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { deleteComment, updateCommentStatus, type CommentStatus } from "@/lib/comment-store";
 
 export const runtime = "nodejs";
@@ -6,9 +7,7 @@ export const runtime = "nodejs";
 type RouteContext = {
   params: Promise<{
     id: string;
-  }> | {
-    id: string;
-  };
+  }>;
 };
 
 async function resolveParams(context: RouteContext) {
@@ -24,6 +23,9 @@ function normalizeStatus(value: unknown): CommentStatus | null {
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
+
   const { id } = await resolveParams(context);
   const body = await request.json().catch(() => null);
 
@@ -46,6 +48,9 @@ export async function PATCH(request: Request, context: RouteContext) {
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
+
   const { id } = await resolveParams(context);
   const removed = await deleteComment(id);
 
