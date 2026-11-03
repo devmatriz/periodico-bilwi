@@ -13,3 +13,12 @@ tsconfig.tsbuildinfo
 
 # Capturas de revisión de diseño (se regeneran)
 .impeccable/review/
+
+# App Android (TWA): la llave de firma y sus claves nunca van al repositorio
+android/llave/
+android/**/build/
+android/.gradle/
+android/*.apk
+android/*.aab
+android/*.idsig
+android/local.properties

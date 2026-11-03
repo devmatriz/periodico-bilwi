@@ -23,6 +23,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   // Fuera: panel, APIs, archivos estáticos, subidas, íconos y los archivos de la app instalable.
   matcher: [
-    "/((?!admin|api|_next|uploads/|marca/|icon|apple-icon|opengraph-image|twitter-image|manifest|favicon|robots|sitemap|sw\\.js|offline\\.html).*)",
+    "/((?!admin|api|_next|uploads/|marca/|icon|apple-icon|opengraph-image|twitter-image|manifest|favicon|robots|sitemap|sw\\.js|offline\\.html|\\.well-known).*)",
   ],
 };

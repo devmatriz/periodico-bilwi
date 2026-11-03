@@ -1,0 +1,35 @@
+{
+  "packageId": "ni.bilwinoticias.app",
+  "host": "posted-merchandise-paradise-dylan.trycloudflare.com",
+  "name": "Bilwi Noticias",
+  "launcherName": "Bilwi Noticias",
+  "display": "standalone",
+  "themeColor": "#15171A",
+  "themeColorDark": "#121416",
+  "navigationColor": "#15171A",
+  "navigationColorDark": "#121416",
+  "navigationDividerColor": "#15171A",
+  "navigationDividerColorDark": "#121416",
+  "backgroundColor": "#FFFFFF",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://posted-merchandise-paradise-dylan.trycloudflare.com/marca/icon-512.png",
+  "maskableIconUrl": "https://posted-merchandise-paradise-dylan.trycloudflare.com/marca/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./llave/bilwi-noticias.keystore",
+    "alias": "bilwi-noticias"
+  },
+  "appVersionCode": 1,
+  "appVersion": "1.0.0",
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://posted-merchandise-paradise-dylan.trycloudflare.com/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "enableSiteSettingsShortcut": true,
+  "orientation": "default",
+  "minSdkVersion": 24,
+  "fingerprints": [
+    { "name": "llave-de-subida", "value": "6C:6B:C2:DA:0E:DB:17:C1:D0:26:C1:8F:E5:2D:31:C5:2A:B3:41:40:0E:25:04:C9:DD:0A:72:C3:77:17:8B:29" }
+  ]
+}

@@ -1,0 +1,2 @@
+# El script de Gradle para Linux/macOS deja de funcionar con fines de línea de Windows.
+android/gradlew text eol=lf
