@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ni.bilwinoticias.app",
+      "sha256_cert_fingerprints": [
+        "6C:6B:C2:DA:0E:DB:17:C1:D0:26:C1:8F:E5:2D:31:C5:2A:B3:41:40:0E:25:04:C9:DD:0A:72:C3:77:17:8B:29"
+      ]
+    }
+  }
+]

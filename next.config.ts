@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
           { key: "Content-Type", value: "application/javascript; charset=utf-8" },
         ],
       },
+      {
+        // Android comprueba aquí que la app ni.bilwinoticias.app pertenece al sitio.
+        source: "/.well-known/assetlinks.json",
+        headers: [{ key: "Content-Type", value: "application/json" }],
+      },
     ];
   },
 };
