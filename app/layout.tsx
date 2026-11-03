@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import { NavigationProgress } from "@/components/navigation-progress";
+import { ServiceWorker } from "@/components/service-worker";
 import { themeInitScript } from "@/lib/theme";
 import { getI18n } from "@/lib/i18n-server";
 
@@ -60,6 +61,9 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* Next envía los metadatos al final del <body> mientras transmite la página, y Chrome solo
+            reconoce el manifiesto dentro del <head>: sin esta línea el sitio no se puede instalar. */}
+        <link rel="manifest" href="/manifest.webmanifest" />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
@@ -67,6 +71,7 @@ export default async function RootLayout({
           {t.common.skipToContent}
         </a>
         <NavigationProgress />
+        <ServiceWorker />
         {children}
       </body>
     </html>

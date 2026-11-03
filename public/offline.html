@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#15171a">
+  <title>Sin conexión | Bilwi Noticias</title>
+  <!-- Página que muestra la app cuando no hay internet. Todo va dentro del archivo:
+       sin conexión no se pueden cargar estilos, fuentes ni scripts del sitio. -->
+  <script>
+    (function () {
+      try { if (localStorage.getItem("bilwi-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}
+    })();
+  </script>
+  <style>
+    :root {
+      --paper: #ffffff;
+      --ink: #15171a;
+      --ink-2: #5b6168;
+      --tile-bg: #15171a;
+      --tile-ink: #ffffff;
+      --green: #0a5f63;
+      --on-green: #ffffff;
+      color-scheme: light;
+    }
+    :root[data-theme="dark"] {
+      --paper: #121416;
+      --ink: #ecedee;
+      --ink-2: #9aa1a8;
+      --tile-bg: #ecedee;
+      --tile-ink: #121416;
+      --green: #5cc4be;
+      --on-green: #121416;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px 16px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+      text-align: center;
+    }
+    main { max-width: 26rem; }
+    .tile { width: 88px; height: 88px; margin: 0 auto 28px; }
+    .tile rect { fill: var(--tile-bg); }
+    .tile path { fill: var(--tile-ink); }
+    h1 { margin: 0 0 12px; font-size: 1.75rem; line-height: 1.15; }
+    p { margin: 0 0 28px; color: var(--ink-2); font-family: "Source Serif 4", Georgia, serif; font-size: 1.0625rem; line-height: 1.55; }
+    button {
+      min-height: 44px;
+      padding: 0 22px;
+      border: 0;
+      border-radius: 4px;
+      background: var(--green);
+      color: var(--on-green);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <svg class="tile" viewBox="0 0 100 100" aria-hidden="true">
+      <rect width="100" height="100" rx="7"/>
+      <path d="M30.2 68.1V10H53.4Q58.1 10 61.5 11.6Q65 13.3 66.9 16.4Q68.8 19.5 68.8 24Q68.8 27.7 67.6 30.4Q66.5 33.1 64.6 34.9Q62.7 36.7 60.2 37.8V38.1Q62.9 39 65.1 40.5Q67.2 42.1 68.5 44.8Q69.8 47.5 69.8 51.7Q69.8 57 67.6 60.6Q65.3 64.3 61.3 66.2Q57.3 68.1 52.1 68.1ZM44.6 55.7H50.8Q52.9 55.7 54 54.2Q55.2 52.7 55.2 49.6Q55.2 48.1 54.7 46.8Q54.2 45.6 53.2 44.9Q52.2 44.2 50.8 44.2H44.6ZM44.6 33.1H50.2Q51.6 33.1 52.6 32.4Q53.5 31.6 54 30.3Q54.5 28.9 54.5 27Q54.5 24.7 53.3 23.3Q52.2 21.8 50.3 21.8H44.6Z"/>
+      <path d="M0 80C14 72 30 72 44 78S74 86 100 76V82C74 92 58 84 44 84S14 78 0 86Z"/>
+    </svg>
+    <h1 id="titulo">Sin conexión</h1>
+    <p id="texto">No pudimos cargar esta página. Revisa tu conexión a internet e inténtalo de nuevo.</p>
+    <button id="reintentar" type="button">Reintentar</button>
+  </main>
+  <script>
+    // El service worker entrega esta página en lugar de la que se pidió, así que la dirección
+    // sigue siendo la original: /en/… indica que el lector estaba en el sitio en inglés.
+    if (location.pathname === "/en" || location.pathname.indexOf("/en/") === 0) {
+      document.documentElement.lang = "en";
+      document.title = "Offline | Bilwi Noticias";
+      document.getElementById("titulo").textContent = "You're offline";
+      document.getElementById("texto").textContent = "We couldn't load this page. Check your internet connection and try again.";
+      document.getElementById("reintentar").textContent = "Try again";
+    }
+    document.getElementById("reintentar").addEventListener("click", function () { location.reload(); });
+    window.addEventListener("online", function () { location.reload(); });
+  </script>
+</body>
+</html>
