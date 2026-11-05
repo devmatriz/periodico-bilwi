@@ -28,3 +28,4 @@ android/local.properties
 data/*.json
 public/uploads/*
 !public/uploads/.gitkeep
+.vercel
