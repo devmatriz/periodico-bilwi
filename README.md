@@ -68,3 +68,18 @@ la primera vez que alguien inicia sesión con la base vacía. Desde el panel
 
 Para cambiar el esquema: edita `prisma/schema.prisma` y ejecuta `npm run db:migrate`.
 En Vercel, `vercel-build` aplica las migraciones pendientes antes de compilar.
+
+## Fotos
+
+Las noticias guardan siempre `/uploads/<archivo>`; dónde vive el archivo se elige con
+`STORAGE_DRIVER` (ver `.env.example`):
+
+- `local`: carpeta `public/uploads`. Para desarrollo o un servidor propio.
+- `s3`: Contabo Object Storage u otro compatible con S3. Obligatorio en Vercel.
+
+Para copiar al bucket las fotos que ya tienes en `public/uploads` (no borra nada y se puede repetir):
+
+```bash
+npm run media:upload
+```
+

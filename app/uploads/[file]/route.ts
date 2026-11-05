@@ -2,11 +2,14 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { LOCAL_UPLOADS_DIR, readRemoteUpload, storageDriver } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
 // En producción Next solo sirve los archivos que estaban en public/ al compilar.
 // Las imágenes y clips que la redacción sube después llegan aquí, con la misma URL /uploads/<archivo>.
+// Con STORAGE_DRIVER=s3 se leen del bucket. Si además existe MEDIA_PUBLIC_URL, next.config.ts
+// manda /uploads/… directo a esa dirección y esta ruta ni siquiera se ejecuta.
 
 const contentTypes: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -44,12 +47,6 @@ export async function GET(request: Request, context: Context) {
     return notFound();
   }
 
-  const filePath = path.join(process.cwd(), "public", "uploads", file);
-  const info = await stat(filePath).catch(() => null);
-  if (!info?.isFile()) {
-    return notFound();
-  }
-
   const headers: Record<string, string> = {
     "Content-Type": type,
     // Los nombres llevan fecha y UUID: el archivo nunca cambia.
@@ -62,8 +59,30 @@ export async function GET(request: Request, context: Context) {
     headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
   }
 
+  const rangeHeader = request.headers.get("range") ?? undefined;
+
+  if (storageDriver() === "s3") {
+    const remote = await readRemoteUpload(file, rangeHeader?.match(/^bytes=\d*-\d*$/) ? rangeHeader : undefined);
+    if (remote === "invalid-range") {
+      return new Response(null, { status: 416 });
+    }
+    if (!remote) {
+      return notFound();
+    }
+    const extra: Record<string, string> = {};
+    if (remote.contentLength !== undefined) extra["Content-Length"] = String(remote.contentLength);
+    if (remote.contentRange) extra["Content-Range"] = remote.contentRange;
+    return new Response(remote.body, { status: remote.contentRange ? 206 : 200, headers: { ...headers, ...extra } });
+  }
+
+  const filePath = path.join(LOCAL_UPLOADS_DIR, file);
+  const info = await stat(filePath).catch(() => null);
+  if (!info?.isFile()) {
+    return notFound();
+  }
+
   // Rangos: el reproductor del iPhone los exige y permiten adelantar el clip sin bajarlo entero.
-  const range = request.headers.get("range")?.match(/^bytes=(\d*)-(\d*)$/);
+  const range = rangeHeader?.match(/^bytes=(\d*)-(\d*)$/);
   if (range) {
     const size = info.size;
     let start = range[1] ? Number(range[1]) : NaN;

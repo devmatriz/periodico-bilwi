@@ -14,9 +14,11 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
-    "db:deploy": "prisma migrate deploy"
+    "db:deploy": "prisma migrate deploy",
+    "media:upload": "tsx --conditions=react-server --env-file=.env scripts/subir-fotos.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1155.0",
     "@prisma/client": "^6.0.0",
     "next": "^15.0.0",
     "next-auth": "^5.0.0-beta.25",

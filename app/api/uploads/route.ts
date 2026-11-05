@@ -1,10 +1,21 @@
 import { NextResponse } from "next/server";
 import { rejectUnlessStaff } from "@/lib/admin-guard";
-import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { saveUpload, storageDriver } from "@/lib/storage";
 
 export const runtime = "nodejs";
+
+// Vercel no acepta peticiones de más de 4,5 MB; el panel ya achica las fotos antes de subirlas.
+const MAX_BYTES = 4 * 1024 * 1024;
+
+const ALLOWED_TYPES: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+  "image/avif": ".avif",
+};
 
 function slugifyFileName(value: string) {
   return value
@@ -27,23 +38,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Debes enviar un archivo." }, { status: 400 });
   }
 
-  if (!file.type.startsWith("image/")) {
-    return NextResponse.json({ message: "El archivo debe ser una imagen." }, { status: 400 });
+  // Sin SVG: puede llevar código, y la foto se sirve desde el dominio del periódico.
+  const extensionForType = ALLOWED_TYPES[file.type];
+  if (!extensionForType) {
+    return NextResponse.json({ message: "La imagen debe ser JPG, PNG, WebP, GIF o AVIF." }, { status: 400 });
   }
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
+  if (file.size > MAX_BYTES) {
+    return NextResponse.json({ message: "La imagen pesa más de 4 MB. Redúcela e inténtalo de nuevo." }, { status: 413 });
+  }
+
+  // En Vercel el disco se borra en cada despliegue: ahí la foto se perdería.
+  if (process.env.VERCEL && storageDriver() === "local") {
+    return NextResponse.json(
+      { message: "El almacenamiento de fotos no está configurado (STORAGE_DRIVER=s3)." },
+      { status: 500 },
+    );
+  }
+
   const originalName = slugifyFileName(file.name || "imagen");
-  const extension = path.extname(originalName) || `.${file.type.split("/")[1] || "jpg"}`;
+  const extension = extensionForType;
   const baseName = path.basename(originalName, path.extname(originalName)) || "imagen";
   const fileName = `${Date.now()}-${randomUUID()}-${baseName}${extension}`;
-  const filePath = path.join(uploadsDir, fileName);
 
-  await mkdir(uploadsDir, { recursive: true });
   const bytes = Buffer.from(await file.arrayBuffer());
-  await writeFile(filePath, bytes);
+  const url = await saveUpload(fileName, bytes, file.type);
 
   return NextResponse.json({
-    url: `/uploads/${fileName}`,
+    url,
     name: file.name,
     size: file.size,
     type: file.type,
