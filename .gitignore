@@ -22,3 +22,9 @@ android/*.apk
 android/*.aab
 android/*.idsig
 android/local.properties
+
+# Datos y fotos reales del periódico: viven en el servidor, no en GitHub.
+# Sin estos archivos, el sitio arranca con las noticias y comentarios de ejemplo del código.
+data/*.json
+public/uploads/*
+!public/uploads/.gitkeep

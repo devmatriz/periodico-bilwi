@@ -1,8 +1,9 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { validateAdminCredentials } from "@/lib/admin-auth-store";
+import { getAuthSecret } from "@/lib/production-env";
 
-const AUTH_SECRET = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "bilwi-noticias-dev-secret";
+const AUTH_SECRET = getAuthSecret();
 
 export const {
   handlers: { GET, POST },
