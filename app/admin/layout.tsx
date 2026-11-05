@@ -1,5 +1,5 @@
 import { AdminShell } from "@/components/admin-shell";
-import { auth } from "@/lib/auth";
+import { getPanelUser } from "@/lib/admin-guard";
 import { redirect } from "next/navigation";
 
 export default async function AdminLayout({
@@ -7,14 +7,14 @@ export default async function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  const user = await getPanelUser();
 
-  if (!session || session.user?.role !== "admin") {
+  if (!user) {
     redirect("/login?callbackUrl=/admin");
   }
 
   return (
-    <AdminShell userName={session.user?.name || "Administrador"} userEmail={session.user?.email || "admin@bilwi.ni"}>
+    <AdminShell userName={user.name} userEmail={user.email} isAdmin={user.isAdmin}>
       {children}
     </AdminShell>
   );

@@ -1,85 +1,89 @@
+// Datos del periódico. Cada modelo reemplaza a uno de los antiguos archivos de data/*.json.
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Conexión que usa el sitio (en Neon: la dirección "pooled").
+  url       = env("DATABASE_URL")
+  // Conexión directa para aplicar migraciones (en Neon: la dirección sin "-pooler").
+  directUrl = env("DIRECT_URL")
 }
 
-enum UserRole {
-  ADMIN
-  EDITOR
+/// Noticias (antes data/noticias.json).
+model Article {
+  id           String   @id
+  slug         String   @unique
+  title        String
+  category     String
+  excerpt      String
+  content      String
+  image        String
+  author       String
+  /// published | draft | scheduled | archived
+  status       String   @default("draft")
+  featured     Boolean  @default(false)
+  /// Fecha que se muestra al lector, ya redactada ("5 de noviembre de 2026").
+  time         String
+  publishedAt  DateTime
+  createdAt    DateTime
+  updatedAt    DateTime
+  /// Versiones en otros idiomas: { en: { title, excerpt, content } }
+  translations Json?
+
+  @@index([status, updatedAt])
 }
 
-enum PostStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
+/// Comentarios de lectores (antes data/comments.json).
+model Comment {
+  id           String    @id
+  articleSlug  String
+  articleTitle String
+  name         String
+  email        String    @default("")
+  message      String
+  /// pending | approved | rejected | spam
+  status       String    @default("pending")
+  createdAt    DateTime
+  updatedAt    DateTime
+  moderatedAt  DateTime?
+  moderator    String?
+
+  @@index([articleSlug, status])
 }
 
-model User {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  role      UserRole @default(EDITOR)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
-}
-
-model Category {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
-}
-
-model Tag {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     PostTag[]
-}
-
-model Image {
-  id        String   @id @default(cuid())
-  url       String
-  alt       String?
-  caption   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
-}
-
-model Post {
-  id          String     @id @default(cuid())
+/// Ajustes de las secciones del periódico (antes data/admin-categories.json).
+model CategorySetting {
+  slug        String   @id
+  active      Boolean  @default(true)
+  label       String
+  badge       String
   title       String
-  slug        String     @unique
-  excerpt     String?
-  content     String
-  status      PostStatus @default(DRAFT)
-  publishedAt DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  authorId    String?
-  categoryId  String?
-  imageId     String?
-  author      User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  category    Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  image       Image?     @relation(fields: [imageId], references: [id], onDelete: SetNull)
-  tags        PostTag[]
+  description String
+  chips       String[]
+  image       String
+  background  String
 }
 
-model PostTag {
-  postId String
-  tagId  String
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([postId, tagId])
+/// Personas con acceso al panel (antes data/admin-users.json + data/admin-auth.json).
+model User {
+  id                 String    @id
+  name               String
+  email              String    @unique
+  /// Cargo que se muestra en el panel ("Editor en Jefe", "Redacción"…).
+  role               String
+  scope              String    @default("")
+  status             String    @default("Activo")
+  active             Boolean   @default(true)
+  /// Puede crear cuentas y cambiar ajustes del periódico.
+  isAdmin            Boolean   @default(false)
+  /// Sin contraseña guardada la cuenta no puede iniciar sesión.
+  passwordSalt       String?
+  passwordHash       String?
+  mustChangePassword Boolean   @default(false)
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }

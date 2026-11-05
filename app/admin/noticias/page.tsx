@@ -1,5 +1,5 @@
 import { getNoticias } from "@/lib/content-store";
-import { requireAdminPage } from "@/lib/admin-guard";
+import { requireStaffPage } from "@/lib/admin-guard";
 import { AdminNewsTable } from "@/components/admin-news-table";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default async function AdminNoticiasPage({ searchParams }: Props) {
-  await requireAdminPage("/admin/noticias");
+  await requireStaffPage("/admin/noticias");
   const { estado } = await searchParams;
   const posts = await getNoticias();
 

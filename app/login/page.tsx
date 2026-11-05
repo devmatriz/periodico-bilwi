@@ -32,15 +32,9 @@ export default async function LoginPage({ searchParams }: Props) {
       boardText="Publica, edita y modera la cobertura diaria de Bilwi Noticias."
     >
       <h1 className="auth-title">Iniciar sesión</h1>
-      <p className="auth-lede">Usa tu cuenta de administrador para entrar al panel editorial.</p>
+      <p className="auth-lede">Usa la cuenta que te dio la administración del periódico.</p>
 
       <AdminLoginForm callbackUrl={callbackUrl} />
-
-      <div className="demo-note">
-        <p>
-          Cuenta de prueba: <strong>admin@bilwi.ni</strong> · <strong>Bilwi2026!</strong>
-        </p>
-      </div>
     </AuthLayout>
   );
 }

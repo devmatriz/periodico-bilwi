@@ -10,8 +10,8 @@ type Props = {
 
 export function AdminLoginForm({ callbackUrl }: Props) {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@bilwi.ni");
-  const [password, setPassword] = useState("Bilwi2026!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 

@@ -1,12 +1,12 @@
 import { AdminUserManager } from "@/components/admin-user-manager";
 import { requireAdminPage } from "@/lib/admin-guard";
-import { getEditorialUsers } from "@/lib/editorial-admin-store";
+import { getEditorialUsers } from "@/lib/user-store";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsuariosPage() {
-  await requireAdminPage("/admin/usuarios");
+  const me = await requireAdminPage("/admin/usuarios");
   const users = await getEditorialUsers();
 
-  return <AdminUserManager items={users} />;
+  return <AdminUserManager items={users} currentEmail={me.email} />;
 }

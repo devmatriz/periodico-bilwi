@@ -41,24 +41,30 @@ npm install
 npm run dev
 ```
 
-## Base de datos local
+## Base de datos
 
-Si quieres levantar PostgreSQL con Docker:
+Noticias, comentarios, secciones y cuentas del panel viven en PostgreSQL (Prisma).
+En producción se usa Neon; para desarrollo sirve una rama de Neon o un Postgres local.
+
+1. Copia `.env.example` como `.env` y completa `DATABASE_URL` y `DIRECT_URL`
+   (en Neon: la dirección "pooled" y la directa; en local, la misma en las dos).
+2. Crea las tablas:
 
 ```bash
-docker compose up -d
+npm run db:deploy
 ```
 
-Luego usa esta URL en `.env` o `.env.local`:
+3. Carga los datos. Si existen los antiguos `data/*.json`, se copian tal cual
+   (también las contraseñas, ya cifradas); si no, se cargan noticias de ejemplo.
+   Se puede repetir: no duplica nada.
 
 ```bash
-DATABASE_URL="postgresql://periodico:periodico@localhost:5432/periodico_bilwi"
-```
-
-Después ejecuta:
-
-```bash
-npm run db:generate
-npm run db:migrate -- --name init
 npm run db:seed
 ```
+
+La primera cuenta de administración sale de `ADMIN_EMAIL` / `ADMIN_PASSWORD`
+la primera vez que alguien inicia sesión con la base vacía. Desde el panel
+(Equipo) esa cuenta crea las demás, con contraseñas temporales.
+
+Para cambiar el esquema: edita `prisma/schema.prisma` y ejecuta `npm run db:migrate`.
+En Vercel, `vercel-build` aplica las migraciones pendientes antes de compilar.

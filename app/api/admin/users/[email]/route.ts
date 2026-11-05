@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { rejectUnlessAdmin } from "@/lib/admin-guard";
-import { toggleEditorialUser, updateEditorialUser } from "@/lib/editorial-admin-store";
+import { getPanelUser, rejectUnlessAdmin } from "@/lib/admin-guard";
+import { deleteEditorialUser, updateEditorialUser, UserRuleError } from "@/lib/user-store";
+import type { UserPatch } from "@/lib/user-store";
 
 export const runtime = "nodejs";
 
@@ -10,33 +11,65 @@ type RouteContext = {
   }>;
 };
 
-async function resolveParams(context: RouteContext) {
-  return Promise.resolve(context.params);
+function ruleError(error: unknown) {
+  if (error instanceof UserRuleError) {
+    return NextResponse.json({ message: error.message }, { status: 400 });
+  }
+  throw error;
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
   const denied = await rejectUnlessAdmin();
   if (denied) return denied;
 
-  const { email } = await resolveParams(context);
-  const body = await request.json().catch(() => null);
+  const { email } = await context.params;
+  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
 
   if (!body || typeof body !== "object") {
     return NextResponse.json({ message: "Cuerpo de solicitud invalido." }, { status: 400 });
   }
 
-  const normalizedBody = body as Record<string, unknown>;
-  const item =
-    typeof normalizedBody.active === "boolean" && Object.keys(normalizedBody).length === 1
-      ? await toggleEditorialUser(email, normalizedBody.active)
-      : await updateEditorialUser(
-          email,
-          normalizedBody as Parameters<typeof updateEditorialUser>[1],
-        );
+  // Solo los campos que el panel puede cambiar; nada de contraseñas por aquí.
+  const patch: UserPatch = {};
+  for (const key of ["name", "role", "scope", "status"] as const) {
+    if (typeof body[key] === "string") patch[key] = body[key] as string;
+  }
+  if (typeof body.active === "boolean") patch.active = body.active;
+  if (typeof body.isAdmin === "boolean") patch.isAdmin = body.isAdmin;
 
-  if (!item) {
-    return NextResponse.json({ message: "Usuario no encontrado." }, { status: 404 });
+  const me = await getPanelUser();
+  if (me && me.email === decodeURIComponent(email).toLowerCase() && (patch.active === false || patch.isAdmin === false)) {
+    return NextResponse.json({ message: "No puedes quitarte el acceso a ti mismo." }, { status: 400 });
   }
 
-  return NextResponse.json({ item, message: "Usuario actualizado correctamente." });
+  try {
+    const item = await updateEditorialUser(email, patch);
+    if (!item) {
+      return NextResponse.json({ message: "Usuario no encontrado." }, { status: 404 });
+    }
+    return NextResponse.json({ item, message: "Usuario actualizado correctamente." });
+  } catch (error) {
+    return ruleError(error);
+  }
+}
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
+
+  const { email } = await context.params;
+  const me = await getPanelUser();
+  if (me && me.email === decodeURIComponent(email).toLowerCase()) {
+    return NextResponse.json({ message: "No puedes borrar tu propia cuenta." }, { status: 400 });
+  }
+
+  try {
+    const removed = await deleteEditorialUser(email);
+    if (!removed) {
+      return NextResponse.json({ message: "Usuario no encontrado." }, { status: 404 });
+    }
+    return NextResponse.json({ message: "Cuenta eliminada." });
+  } catch (error) {
+    return ruleError(error);
+  }
 }

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { isAdmin, rejectUnlessAdmin } from "@/lib/admin-guard";
+import { isStaff, rejectUnlessStaff } from "@/lib/admin-guard";
 import { createNoticia, getNoticias, getPublicNoticias } from "@/lib/content-store";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const items = (await isAdmin()) ? await getNoticias() : await getPublicNoticias();
+  const items = (await isStaff()) ? await getNoticias() : await getPublicNoticias();
 
   return NextResponse.json({
     items,
@@ -14,7 +14,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const denied = await rejectUnlessAdmin();
+  const denied = await rejectUnlessStaff();
   if (denied) return denied;
 
   const body = await request.json().catch(() => null);

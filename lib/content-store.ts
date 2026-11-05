@@ -1,11 +1,12 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { Prisma } from "@prisma/client";
+import type { Article } from "@prisma/client";
 import { getEditorialCategorySettings } from "@/lib/editorial-admin-store";
 import { translationLocales } from "@/lib/i18n";
 import type { TranslationLocale } from "@/lib/i18n";
+import { prisma } from "@/lib/prisma";
 import { editorialSections, featuredStories, recentStories } from "@/lib/site-data";
 
 export type NewsStatus = "published" | "draft" | "scheduled" | "archived";
@@ -55,15 +56,11 @@ export type CategorySummary = {
   active: boolean;
 };
 
-type StorageShape = {
-  items: NewsItem[];
-};
-
-const dataDir = path.join(process.cwd(), "data");
-const dataFile = path.join(dataDir, "noticias.json");
 // Imagen propia (identidad del periódico) para noticias sin foto.
 const fallbackImage = "/marca/sin-imagen.jpg";
-let contentCache: NewsItem[] | null = null;
+
+// Lo más reciente primero (el mismo orden que tenía el archivo JSON).
+const newestFirst: Prisma.ArticleOrderByWithRelationInput[] = [{ updatedAt: "desc" }, { createdAt: "desc" }];
 
 function stripTrailingSlash(value: string) {
   return value.replace(/\/+$/g, "");
@@ -75,7 +72,7 @@ function slugify(value: string) {
       .trim()
       .toLowerCase()
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[̀-ͯ]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, ""),
   );
@@ -98,7 +95,8 @@ function articleBody(excerpt: string, category: string, title: string) {
   ].join("\n\n");
 }
 
-function seedArticles(): NewsItem[] {
+/** Noticias de ejemplo para una base de datos nueva (las carga `npm run db:seed`). */
+export function seedArticles(): NewsItem[] {
   const baseStories = [...featuredStories, ...recentStories];
   const now = Date.now();
 
@@ -125,62 +123,55 @@ function seedArticles(): NewsItem[] {
   });
 }
 
-function sortArticles(items: NewsItem[]) {
-  return [...items].sort((left, right) => {
-    const updated = new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
-    if (updated !== 0) {
-      return updated;
-    }
-
-    return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
-  });
+function fromRow(row: Article): NewsItem {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    category: row.category,
+    excerpt: row.excerpt,
+    content: row.content,
+    image: row.image || fallbackImage,
+    author: row.author,
+    status: row.status as NewsStatus,
+    featured: row.featured,
+    time: row.time,
+    publishedAt: row.publishedAt.toISOString(),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    translations: (row.translations as NewsItem["translations"] | null) ?? undefined,
+  };
 }
 
-async function readStorage(): Promise<StorageShape> {
-  if (contentCache) {
-    return { items: contentCache.map((item) => ({ ...item })) };
+/** Convierte una noticia al formato de la tabla Article (también lo usa la importación desde JSON). */
+export function articleToRow(item: NewsItem) {
+  return {
+    id: item.id,
+    slug: item.slug,
+    title: item.title,
+    category: item.category,
+    excerpt: item.excerpt,
+    content: item.content,
+    image: item.image,
+    author: item.author,
+    status: item.status,
+    featured: item.featured,
+    time: item.time,
+    publishedAt: new Date(item.publishedAt),
+    createdAt: new Date(item.createdAt),
+    updatedAt: new Date(item.updatedAt),
+    translations: item.translations ? (item.translations as Prisma.InputJsonValue) : Prisma.DbNull,
+  };
+}
+
+/** Si otra noticia ya usa ese slug, agrega -2, -3… en vez de chocar con ella. */
+async function uniqueSlug(base: string, ownId?: string) {
+  const root = base || "noticia";
+  for (let n = 1; ; n += 1) {
+    const candidate = n === 1 ? root : `${root}-${n}`;
+    const taken = await prisma.article.findUnique({ where: { slug: candidate }, select: { id: true } });
+    if (!taken || taken.id === ownId) return candidate;
   }
-
-  try {
-    const raw = await readFile(dataFile, "utf8");
-    const parsed = JSON.parse(raw) as StorageShape;
-    if (!parsed || !Array.isArray(parsed.items)) {
-      contentCache = seedArticles();
-      return { items: contentCache.map((item) => ({ ...item })) };
-    }
-
-    const items = parsed.items.map((item) => ({
-        ...item,
-        featured: Boolean(item.featured),
-        status: item.status ?? "published",
-        image: item.image || fallbackImage,
-        author: item.author || "Redaccion Bilwi",
-        excerpt: item.excerpt || item.content?.split("\n\n")[0] || "",
-        content: item.content || item.excerpt || "",
-        time: item.time || displayDate(new Date(item.publishedAt || item.updatedAt || Date.now())),
-        publishedAt: item.publishedAt || item.createdAt || item.updatedAt || new Date().toISOString(),
-        createdAt: item.createdAt || item.publishedAt || item.updatedAt || new Date().toISOString(),
-        updatedAt: item.updatedAt || item.createdAt || item.publishedAt || new Date().toISOString(),
-        id: item.id || randomUUID(),
-        slug: item.slug || slugify(item.title),
-      }));
-    contentCache = items;
-    return { items: items.map((item) => ({ ...item })) };
-  } catch {
-    contentCache = seedArticles();
-    return { items: contentCache.map((item) => ({ ...item })) };
-  }
-}
-
-async function writeStorage(items: NewsItem[]) {
-  await mkdir(dataDir, { recursive: true });
-  const payload: StorageShape = { items: sortArticles(items) };
-  contentCache = payload.items.map((item) => ({ ...item }));
-  await writeFile(dataFile, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-}
-
-function publicItems(items: NewsItem[]) {
-  return items.filter((item) => item.status === "published");
 }
 
 /** Conserva solo las traducciones con título y texto; las vacías se descartan. */
@@ -236,12 +227,13 @@ function normalizeArticle(input: NewsInput, current?: NewsItem): NewsItem {
 }
 
 export async function getNoticias() {
-  const storage = await readStorage();
-  return sortArticles(storage.items);
+  const rows = await prisma.article.findMany({ orderBy: newestFirst });
+  return rows.map(fromRow);
 }
 
 export async function getPublicNoticias() {
-  return publicItems(await getNoticias());
+  const rows = await prisma.article.findMany({ where: { status: "published" }, orderBy: newestFirst });
+  return rows.map(fromRow);
 }
 
 export async function getFeaturedNoticias() {
@@ -251,8 +243,8 @@ export async function getFeaturedNoticias() {
 }
 
 export async function getRecentNoticias(limit = 4) {
-  const items = await getPublicNoticias();
-  return items.slice(0, limit);
+  const rows = await prisma.article.findMany({ where: { status: "published" }, orderBy: newestFirst, take: limit });
+  return rows.map(fromRow);
 }
 
 export async function getTickerItems(limit = 5) {
@@ -270,53 +262,43 @@ export async function getTickerItems(limit = 5) {
 }
 
 export async function getNoticiaBySlug(slug: string, options?: { includeUnpublished?: boolean }) {
-  const items = await getNoticias();
-  const article = items.find((item) => item.slug === slug);
+  const row = await prisma.article.findUnique({ where: { slug } });
 
-  if (!article) {
+  if (!row) {
     return null;
   }
 
-  if (!options?.includeUnpublished && article.status !== "published") {
+  if (!options?.includeUnpublished && row.status !== "published") {
     return null;
   }
 
-  return article;
+  return fromRow(row);
 }
 
 export async function createNoticia(input: NewsInput) {
-  const storage = await readStorage();
-  const article = normalizeArticle(input);
-  const items = sortArticles([...storage.items, article]);
-  await writeStorage(items);
+  const draft = normalizeArticle(input);
+  const article = { ...draft, slug: await uniqueSlug(draft.slug) };
+  await prisma.article.create({ data: articleToRow(article) });
   return article;
 }
 
 export async function updateNoticia(slug: string, input: NewsInput) {
-  const storage = await readStorage();
-  const index = storage.items.findIndex((item) => item.slug === slug);
+  const row = await prisma.article.findUnique({ where: { slug } });
 
-  if (index === -1) {
+  if (!row) {
     return null;
   }
 
-  const article = normalizeArticle(input, storage.items[index]);
-  const items = [...storage.items];
-  items[index] = article;
-  await writeStorage(items);
+  const draft = normalizeArticle(input, fromRow(row));
+  const article = { ...draft, slug: await uniqueSlug(draft.slug, row.id) };
+  const { id, ...data } = articleToRow(article);
+  await prisma.article.update({ where: { id }, data });
   return article;
 }
 
 export async function deleteNoticia(slug: string) {
-  const storage = await readStorage();
-  const nextItems = storage.items.filter((item) => item.slug !== slug);
-
-  if (nextItems.length === storage.items.length) {
-    return false;
-  }
-
-  await writeStorage(nextItems);
-  return true;
+  const { count } = await prisma.article.deleteMany({ where: { slug } });
+  return count > 0;
 }
 
 export async function getCategorias(): Promise<CategorySummary[]> {

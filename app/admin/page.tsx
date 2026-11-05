@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdminPage } from "@/lib/admin-guard";
+import { requireStaffPage } from "@/lib/admin-guard";
 import { StatusPill } from "@/components/admin-status";
 import { IconArrowRight } from "@/components/icons";
 import { getCommentStats } from "@/lib/comment-store";
@@ -28,7 +28,7 @@ function dayKey(value: string | Date) {
 }
 
 export default async function AdminHomePage() {
-  await requireAdminPage("/admin");
+  await requireStaffPage("/admin");
   const [posts, commentStats] = await Promise.all([getNoticias(), getCommentStats()]);
   const published = posts.filter((post) => post.status === "published");
   const drafts = posts.filter((post) => post.status === "draft");
