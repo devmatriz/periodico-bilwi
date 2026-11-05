@@ -1,9 +1,9 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import type { Comment as CommentRow } from "@prisma/client";
 import { getNoticiaBySlug } from "@/lib/content-store";
+import { prisma } from "@/lib/prisma";
 
 export type CommentStatus = "pending" | "approved" | "rejected" | "spam";
 
@@ -28,11 +28,8 @@ export type CommentInput = {
   message: string;
 };
 
-const dataDir = path.join(process.cwd(), "data");
-const commentsFile = path.join(dataDir, "comments.json");
-let commentsCache: ArticleComment[] | null = null;
-
-const seedComments: ArticleComment[] = [
+/** Comentarios de ejemplo para una base de datos nueva (los carga `npm run db:seed`). */
+export const seedComments: ArticleComment[] = [
   {
     id: randomUUID(),
     slug: "festival-de-mayo-ya-2024",
@@ -85,16 +82,37 @@ const seedComments: ArticleComment[] = [
   },
 ];
 
-type CommentStorageShape = {
-  items: ArticleComment[];
-};
-
-function nowIso() {
-  return new Date().toISOString();
+function fromRow(row: CommentRow): ArticleComment {
+  return {
+    id: row.id,
+    slug: row.articleSlug,
+    articleTitle: row.articleTitle,
+    name: row.name,
+    email: row.email,
+    message: row.message,
+    status: row.status as CommentStatus,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    moderatedAt: row.moderatedAt?.toISOString(),
+    moderator: row.moderator ?? undefined,
+  };
 }
 
-function sortNewest(items: ArticleComment[]) {
-  return [...items].sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+/** Convierte un comentario al formato de la tabla Comment (también lo usa la importación desde JSON). */
+export function commentToRow(comment: ArticleComment) {
+  return {
+    id: comment.id || randomUUID(),
+    articleSlug: comment.slug,
+    articleTitle: comment.articleTitle || comment.slug,
+    name: comment.name || "Visitante",
+    email: comment.email || "",
+    message: comment.message || "",
+    status: comment.status || "pending",
+    createdAt: new Date(comment.createdAt || Date.now()),
+    updatedAt: new Date(comment.updatedAt || comment.createdAt || Date.now()),
+    moderatedAt: comment.moderatedAt ? new Date(comment.moderatedAt) : null,
+    moderator: comment.moderator ?? null,
+  };
 }
 
 function sortForModeration(items: ArticleComment[]) {
@@ -115,87 +133,33 @@ function sortForModeration(items: ArticleComment[]) {
   });
 }
 
-async function readJsonFile<T>(file: string, fallback: T) {
-  try {
-    const raw = await readFile(file, "utf8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-async function writeJsonFile<T>(file: string, value: T) {
-  await mkdir(dataDir, { recursive: true });
-  await writeFile(file, `${JSON.stringify(value, null, 2)}\n`, "utf8");
-}
-
-async function readStorage(): Promise<CommentStorageShape> {
-  if (commentsCache) {
-    return { items: commentsCache.map((item) => ({ ...item })) };
-  }
-
-  const fallback = { items: seedComments };
-  const stored = await readJsonFile<CommentStorageShape>(commentsFile, fallback);
-
-  if (!stored || !Array.isArray(stored.items) || stored.items.length === 0) {
-    await writeJsonFile(commentsFile, fallback);
-    commentsCache = fallback.items.map((item) => ({ ...item }));
-    return fallback;
-  }
-
-  const items = stored.items.map((comment) => ({
-    id: comment.id || randomUUID(),
-    slug: comment.slug,
-    articleTitle: comment.articleTitle || comment.slug,
-    name: comment.name || "Visitante",
-    email: comment.email || "",
-    message: comment.message || "",
-    status: (comment.status || "pending") as CommentStatus,
-    createdAt: comment.createdAt || nowIso(),
-    updatedAt: comment.updatedAt || comment.createdAt || nowIso(),
-    moderatedAt: comment.moderatedAt,
-    moderator: comment.moderator,
-  }));
-
-  const shouldPersist = JSON.stringify(items) !== JSON.stringify(stored.items);
-  if (shouldPersist) {
-    await writeJsonFile(commentsFile, { items });
-  }
-
-  commentsCache = items.map((item) => ({ ...item }));
-  return { items };
-}
-
-async function writeStorage(items: ArticleComment[]) {
-  const sorted = sortNewest(items);
-  commentsCache = sorted.map((item) => ({ ...item }));
-  await writeJsonFile(commentsFile, { items: sorted });
-}
-
 function normalizeText(value: string) {
   return value.trim();
 }
 
 export async function getAllComments() {
-  const storage = await readStorage();
-  return sortForModeration(storage.items);
+  const rows = await prisma.comment.findMany();
+  return sortForModeration(rows.map(fromRow));
 }
 
 export async function getCommentsForSlug(slug: string, options?: { status?: CommentStatus }) {
-  const storage = await readStorage();
-  const filtered = storage.items.filter((comment) => comment.slug === slug && (!options?.status || comment.status === options.status));
-  return sortNewest(filtered);
+  const rows = await prisma.comment.findMany({
+    where: { articleSlug: slug, ...(options?.status ? { status: options.status } : {}) },
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(fromRow);
 }
 
 export async function getCommentStats() {
-  const comments = await getAllComments();
-  const pending = comments.filter((comment) => comment.status === "pending").length;
-  const approved = comments.filter((comment) => comment.status === "approved").length;
-  const rejected = comments.filter((comment) => comment.status === "rejected").length;
-  const spam = comments.filter((comment) => comment.status === "spam").length;
+  const groups = await prisma.comment.groupBy({ by: ["status"], _count: { _all: true } });
+  const count = (status: CommentStatus) => groups.find((group) => group.status === status)?._count._all ?? 0;
+  const pending = count("pending");
+  const approved = count("approved");
+  const rejected = count("rejected");
+  const spam = count("spam");
 
   return {
-    total: comments.length,
+    total: groups.reduce((sum, group) => sum + group._count._all, 0),
     pending,
     approved,
     rejected,
@@ -218,7 +182,7 @@ export async function createComment(input: CommentInput) {
     return { item: null, message: "La noticia no existe." };
   }
 
-  const storage = await readStorage();
+  const now = new Date().toISOString();
   const item: ArticleComment = {
     id: randomUUID(),
     slug: article.slug,
@@ -227,46 +191,31 @@ export async function createComment(input: CommentInput) {
     email,
     message,
     status: "pending",
-    createdAt: nowIso(),
-    updatedAt: nowIso(),
+    createdAt: now,
+    updatedAt: now,
   };
 
-  storage.items.unshift(item);
-  await writeStorage(storage.items);
+  await prisma.comment.create({ data: commentToRow(item) });
 
   return { item, message: "Comentario enviado y pendiente de moderacion." };
 }
 
 export async function updateCommentStatus(id: string, status: CommentStatus, moderator = "Admin Bilwi") {
-  const storage = await readStorage();
-  const index = storage.items.findIndex((comment) => comment.id === id);
+  const now = new Date();
+  const { count } = await prisma.comment.updateMany({
+    where: { id },
+    data: { status, updatedAt: now, moderatedAt: now, moderator },
+  });
 
-  if (index === -1) {
+  if (count === 0) {
     return null;
   }
 
-  const current = storage.items[index];
-  const item: ArticleComment = {
-    ...current,
-    status,
-    updatedAt: nowIso(),
-    moderatedAt: nowIso(),
-    moderator,
-  };
-
-  storage.items[index] = item;
-  await writeStorage(storage.items);
-  return item;
+  const row = await prisma.comment.findUnique({ where: { id } });
+  return row ? fromRow(row) : null;
 }
 
 export async function deleteComment(id: string) {
-  const storage = await readStorage();
-  const next = storage.items.filter((comment) => comment.id !== id);
-
-  if (next.length === storage.items.length) {
-    return false;
-  }
-
-  await writeStorage(next);
-  return true;
+  const { count } = await prisma.comment.deleteMany({ where: { id } });
+  return count > 0;
 }

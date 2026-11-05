@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { validateAdminCredentials } from "@/lib/admin-auth-store";
+import { validateAdminCredentials } from "@/lib/user-store";
 import { getAuthSecret } from "@/lib/production-env";
 
 const AUTH_SECRET = getAuthSecret();

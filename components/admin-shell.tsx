@@ -14,16 +14,19 @@ import {
   IconMenu,
   IconMessage,
   IconPlus,
+  IconUser,
   IconUsers,
   IconX,
 } from "@/components/icons";
 
+// adminOnly: solo lo ven las cuentas de administración (el servidor también lo impide).
 const menu = [
   { href: "/admin", label: "Resumen", icon: <IconLayout /> },
   { href: "/admin/noticias", label: "Noticias", icon: <IconFile /> },
-  { href: "/admin/categorias", label: "Secciones", icon: <IconFolder /> },
+  { href: "/admin/categorias", label: "Secciones", icon: <IconFolder />, adminOnly: true },
   { href: "/admin/comentarios", label: "Comentarios", icon: <IconMessage /> },
-  { href: "/admin/usuarios", label: "Equipo", icon: <IconUsers /> },
+  { href: "/admin/usuarios", label: "Equipo", icon: <IconUsers />, adminOnly: true },
+  { href: "/admin/cuenta", label: "Mi cuenta", icon: <IconUser /> },
 ];
 
 const routeTitleMap: Record<string, string> = {
@@ -33,6 +36,7 @@ const routeTitleMap: Record<string, string> = {
   "/admin/categorias": "Secciones",
   "/admin/usuarios": "Equipo editorial",
   "/admin/comentarios": "Comentarios",
+  "/admin/cuenta": "Mi cuenta",
 };
 
 function isActive(pathname: string, href: string) {
@@ -43,10 +47,12 @@ export function AdminShell({
   children,
   userName = "Administrador",
   userEmail = "admin@bilwi.ni",
+  isAdmin = false,
 }: {
   children: React.ReactNode;
   userName?: string;
   userEmail?: string;
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -71,7 +77,7 @@ export function AdminShell({
 
         <nav className="admin-nav" aria-label="Administración">
           <ul>
-            {menu.map((item) => (
+            {menu.filter((item) => isAdmin || !item.adminOnly).map((item) => (
               <li key={item.href}>
                 <Link href={item.href} aria-current={isActive(pathname, item.href) ? "page" : undefined}>
                   {item.icon}

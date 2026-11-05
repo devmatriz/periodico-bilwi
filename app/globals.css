@@ -4503,3 +4503,39 @@ a.story-label-section:hover {
     font-size: 12pt;
   }
 }
+
+/* ---------- Mi cuenta y equipo ---------- */
+.admin-account {
+  max-width: 640px;
+}
+
+.account-facts {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.account-facts dt {
+  color: var(--ink-3);
+  font-size: 0.8125rem;
+}
+
+.account-facts dd {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.temp-password {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.temp-password code {
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  background: var(--wash);
+  font-size: 0.9375rem;
+  user-select: all;
+  overflow-wrap: anywhere;
+}
