@@ -5,6 +5,8 @@
 // Se puede repetir sin miedo: lo que ya está en la base no se toca ni se duplica.
 //
 // Uso:  npm run db:seed
+//       npm run db:seed -- --sin-equipo   (producción: no copia las cuentas ni contraseñas locales;
+//                                          la primera cuenta sale de ADMIN_EMAIL / ADMIN_PASSWORD)
 
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -113,6 +115,11 @@ type StoredProfile = { id?: string; name?: string; email?: string; role?: string
 type StoredCredential = { id?: string; name?: string; email?: string; passwordSalt?: string; passwordHash?: string; active?: boolean };
 
 async function seedUsersTable() {
+  if (process.argv.includes("--sin-equipo")) {
+    console.log("Equipo: omitido (--sin-equipo); la primera cuenta se creará con ADMIN_EMAIL / ADMIN_PASSWORD.");
+    return;
+  }
+
   const profiles = (await readJson<StoredProfile[]>("admin-users.json")) ?? [];
   const credentials = (await readJson<StoredCredential[]>("admin-auth.json")) ?? [];
 
